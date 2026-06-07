@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StreamHub - Dashboard Kho Xưởng</title>
+    
+    <link href="/files/adlte/dist/css/adminlte.min.css" rel="stylesheet">
+    <script>
+        var dataTechChart = { "dates": ["Văn Thọ", "Dũng", ...], "totalOrder": [28, 28, ...] };
+        var dataMachineChart = { "dates": ["Máy 1", "Máy 2", ...], "totalOrder": [6, 1, ...] };
+    </script>
+</head>
+
+<body class="sidebar-mini layout-navbar-fixed layout-fixed">
+    <div class="wrapper">
+        
+        <nav class="main-header navbar navbar-expand">...</nav>
+        <aside class="main-sidebar">...</aside>
+
+        <div class="content-wrapper">
+            <section class="p-3 dashboard">
+                
+                <div class="box-body border bg-white rounded p-3 mt-3">
+                    <form id="form-machine" data-pjax="#pjax-machine" action="/dashboard-supplier">
+                        <label>Thời gian</label>
+                        <input type="text" class="daterange form-control" name="date_machine" value="2026-06-07 - 2026-06-07" />
+                    </form>
+                    
+                    <div class="status-legend mt-3">
+                        <div class="legend-item"><div class="legend-green"></div> Máy xanh: Đang trống</div>
+                        <div class="legend-item"><div class="legend-yellow"></div> Máy vàng: Đang sản xuất</div>
+                        <div class="legend-item"><div class="legend-red"></div> Máy đỏ: Đang lỗi, hỏng</div>
+                    </div>
+                </div>
+
+                <div id="pjax-machine" data-pjax-container>
+                    
+                    <div class="box-body border bg-white rounded p-3 mt-3">
+                        <div class="machine-grid mt-3">
+                            <div class="machine-card text-center p-2 position-relative" onclick="showStartMachine(1)">
+                                <i class="bi bi-pc-display-horizontal text-green"></i> <span class="position-absolute">4%</span> <span class="d-block">Máy 1</span>
+                            </div>
+                            </div>
+                    </div>
+
+                    <div class="box-body border bg-white rounded p-4 mt-5">
+                        <h6 class="chart-title">Biểu đồ theo máy</h6>
+                        <canvas id="machine_chart"></canvas>
+                    </div>
+                    
+                    <div class="box-body border bg-white rounded p-4 mt-5">
+                        <h6 class="chart-title">Biểu đồ theo kỹ thuật viên</h6>
+                        <canvas id="tech_chart"></canvas>
+                    </div>
+
+                    <div class="box-body border bg-white rounded p-3 mt-5">
+                        <h6 class="text-bold">Thống kê theo nhân viên</h6>
+                        <div class="border rounded-3">
+                            <div class="row mx-0 px-2 py-3 fw-bold border-bottom">
+                                <div class="col-2">Nhân viên</div>
+                                <div class="col-2">Tổng sản phẩm</div>
+                                <div class="col-2">Đang sản xuất</div>
+                                <div class="col-2">Sản xuất xong</div>
+                                <div class="col-2 text-danger">Lỗi</div>
+                                <div class="col-2">AVG Time</div>
+                            </div>
+                            
+                            <div class="row mx-0 p-2 border-bottom">
+                                <div class="col-2"><a data-bs-toggle="collapse" href="#collapseExample_1436">Văn Thọ</a></div>
+                                <div class="col-2">28</div>
+                                <div class="col-2">2</div>
+                                <div class="col-2">26</div>
+                                <div class="col-2 text-danger">0</div>
+                                <div class="col-2"><b>21.9</b> phút</div>
+                            </div>
+                            
+                            <div class="collapse" id="collapseExample_1436">
+                                <div class="row mx-0 my-2 p-2 border-bottom">
+                                    <div class="col-2"></div>
+                                    <div class="col-2">Dad Cap Washed</div>
+                                    <div class="col-2">20</div>
+                                    <div class="col-2 text-danger">0</div>
+                                    <div class="col-2"><b>24.6</b> phút</div>
+                                </div>
+                                </div>
+                            
+                            <div class="row mx-0 p-2 border-bottom">
+                                <div class="col-2"><b>Tổng</b></div>
+                                <div class="col-2"><b>121</b></div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="modal fade" id="statsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header"><h5>Thống Kê Máy</h5></div>
+                    <div class="modal-body">
+                        <div class="stats-row">...</div>
+                        <div class="chart-section"><canvas id="machineChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-scan" class="modal">...</div>
+
+        <script src="/assets/jquery.js"></script>
+        <script src="/files/js/chart.js"></script>
+        <script src="/files/js/chartjs-plugin-datalabels@2.2.0"></script>
+        <script src="/themes/v2/files/js/modules/admin/dashboard_machine.js"></script>
+        
+        <div class="list-notification"></div>
+
+    </div>
+</body>
+</html>

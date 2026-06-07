@@ -1,0 +1,107 @@
+<body class="sidebar-mini layout-navbar-fixed layout-fixed">
+    <div class="wrapper">
+        
+        <nav class="main-header navbar">
+            <div class="container-fluid">
+                <img src="/files/image/logo.png" width="200" alt="Logo">
+                <ul class="navbar-nav">...</ul>
+                <ul class="navbar-nav ms-auto">...</ul>
+            </div>
+        </nav>
+
+        <aside class="main-sidebar sidebar-light-primary elevation-4">
+            <div class="sidebar sidebar-wrapper">
+                <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview">
+                    <li class="nav-item menu-open">
+                        <a href="#" class="nav-link"><i class="bi bi-house-add"></i><p>Quản lý kho xưởng</p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a href="/emb-thread" class="nav-link active"><p>Quản lý chỉ</p></a></li>
+                            <li class="nav-item"><a href="/gen-qrcode" class="nav-link"><p>Tạo QRcode</p></a></li>
+                            </ul>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="content-wrapper">
+            <section class="container-fluid">
+                <div class="card mt-3 p-3">
+                    
+                    <h4>
+                        <span class="d-inline-block mt-2">Danh sách các loại chỉ</span>
+                        <div class="btn-group float-end">
+                            <a class="btn btn-sm btn-info" href="/add-thread"><i class="bi bi-x-lg"></i> Thêm mới</a>
+                        </div>
+                    </h4>
+                    <hr class="mb-0">
+                    
+                    <form id="w0" class="filter-form marginbottom15" action="/emb-thread" method="get" data-pjax>
+                        <div class="row">
+                            <div class="col-12 d-flex flex-wrap">
+                                <div class="input-box me-2 mt-2">
+                                    <label>Nhà cung cấp</label>
+                                    <select name="supplier_id" class="form-select">
+                                        <option value="">Chọn nhà cung cấp</option>
+                                        <option value="1">Coats</option>
+                                        </select>
+                                </div>
+                                <div class="input-box me-2 mt-2">
+                                    <label>Loại chỉ</label>
+                                    <select name="emb_type" class="form-select">
+                                        <option value="">Chọn loại chỉ</option>
+                                        <option value="Tex 27/ 120D">Tex 27/ 120D</option>
+                                        <option value="Text 18 / 75D">Text 18 / 75D</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div id="id-pjax" data-pjax-container>
+                        <div class="mt-3 mb-2">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 10px">#</th>
+                                        <th>Hình ảnh</th>
+                                        <th>Mã chỉ</th>
+                                        <th>Nhà cung cấp</th>
+                                        <th>Loại chỉ</th>
+                                        <th>Đơn vị</th>
+                                        <th>Độ dài</th>
+                                        <th></th> </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><img src="/files/image/default.jpg" width="50"></td>
+                                        <td>D433</td>
+                                        <td>Ming Shyang</td>
+                                        <td>Tex 27/ 120D</td>
+                                        <td>cuộn</td>
+                                        <td>m</td>
+                                        <td><a href="/edit-thread/445"><i class="bi bi-pencil-square"></i></a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="page-list mb-50 mt-50">
+                            <ul class="pagination">
+                                <li class="page-item prev disabled"><span>«</span></li>
+                                <li class="page-item active"><a class="page-link" href="/emb-thread?page=1">1</a></li>
+                                <li class="page-item"><a class="page-link" href="/emb-thread?page=2">2</a></li>
+                                <li class="page-item next"><a class="page-link" href="/emb-thread?page=2">»</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <div id="modal-scan" class="modal">...</div>
+        <div class="list-notification"></div>
+
+        </div>
+</body>

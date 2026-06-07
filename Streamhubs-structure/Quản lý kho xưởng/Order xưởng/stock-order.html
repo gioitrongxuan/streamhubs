@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>StreamHub</title>
+    </head>
+<body class="sidebar-mini layout-navbar-fixed layout-fixed sidebar-collapse">
+    <div class="wrapper">
+        
+        <nav class="header-stream main-header navbar navbar-expand navbar-white navbar-light">
+            <div class="container-fluid">
+                <img src="/files/image/logo.png" width="200">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" data-lte-toggle="sidebar" href="#"><i class="bi bi-list"></i></a></li>
+                    <li class="nav-item"><a href="/by-qrcode" class="nav-link">QC Order</a></li>
+                    <li class="nav-item"><a href="/scan-track" class="nav-link">Scan Track</a></li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown user-menu">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <span class="d-none d-md-inline">Nguyễn Văn A</span>
+                        </a>
+                        </li>
+                </ul>
+            </div>
+        </nav>
+
+        <aside class="main-sidebar sidebar-light-primary elevation-4">
+            <div class="sidebar sidebar-wrapper">
+                <nav class="mt-2">
+                    <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu">
+                        <li class="nav-item"><a href="#" class="nav-link"><p>Dashboard</p></a></li>
+                        <li class="nav-item"><a href="/orders" class="nav-link"><p>Orders</p></a></li>
+                        <li class="nav-item"><a href="/products" class="nav-link"><p>Products</p></a></li>
+                        <li class="nav-item menu-open">
+                            <a href="#" class="nav-link"><p>Quản lý kho xưởng</p></a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item"><a href="/in-out" class="nav-link"><p>Nhập kho</p></a></li>
+                                <li class="nav-item"><a href="/output-order" class="nav-link"><p>Xuất kho</p></a></li>
+                                <li class="nav-item"><a href="/inventory" class="nav-link"><p>Tồn kho</p></a></li>
+                                <li class="nav-item"><a href="/stock/order" class="nav-link"><p>Orders Xưởng</p></a></li>
+                                </ul>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <div class="content-wrapper">
+            <section class="p-3">
+                <p class="text-danger fs-6 fw-bold">474 order quá 1 ngày chưa Sx xong</p>
+                
+                <div class="box-body p-2 bg-white border rounded">
+                    <h4 class="fs-4 text-upper margintop0">
+                        <span class="d-inline-block mt-2">Order List</span>
+                        <div class="dropdown ms-2 float-right">
+                            <button class="btn btn-sm btn-info text-white">Xuất tổng số lượng</button>
+                            <button class="btn btn-sm btn-primary text-white">Xuất chi tiết</button>
+                        </div>
+                    </h4>
+                    <hr>
+
+                    <form id="w0" class="filter-form marginbottom15" action="/stock/order" method="get" data-pjax="">
+                        <div class="row">
+                            <div class="col-12 d-flex flex-wrap">
+                                <div class="input-box me-2 daterangeBox">
+                                    <label class="text-muted">Date</label>
+                                    <input class="form-control daterange" type="text" id="daterange" value="">
+                                </div>
+                                <div class="input-box me-2">
+                                    <label class="text-muted">Status</label>
+                                    <select class="form-control select2Status" multiple="">
+                                        <option value="">Tất cả</option>
+                                        <option value="pending">Chưa sản xuất</option>
+                                        <option value="out_stock">Đã xuất kho</option>
+                                        </select>
+                                </div>
+                                <div class="input-box me-2">
+                                    <label class="text-muted">Order ID</label>
+                                    <input type="text" class="form-control" name="etsyOrderId">
+                                </div>
+                                <div class="input-box me-2">
+                                    <label class="text-muted">SKU</label>
+                                    <input type="text" class="form-control" name="sku">
+                                </div>
+                                <div class="input-box me-2">
+                                    <label class="text-muted">Loại sản phẩm</label>
+                                    <select class="form-select" name="product_type">
+                                        <option value="">Chọn loại sản phẩm</option>
+                                        <option value="112">Baby Banner</option>
+                                        <option value="25">Hoodie</option>
+                                        </select>
+                                </div>
+                                <div class="input-box me-2">
+                                    <label class="text-muted">Xưởng</label>
+                                    <select class="form-select" name="supplier_id">
+                                        <option value="">Chọn xưởng</option>
+                                        <option value="1403" selected>Xưởng Streamhub</option>
+                                        </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-sm-12 mt-3">
+                                <label class="checkbox-inline"><input name="stt_done" type="checkbox" value="ex_done"> Sản xuất xong</label>
+                                <label class="checkbox-inline labels text-red"><input name="labels" type="checkbox" value="2"> Làm gấp</label>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div id="id-pjax" data-pjax-container="">
+                        
+                        <div id="menu2" class="mt-3 mb-2">
+                            <div class="row">
+                                <div class="col-sm-6"><span class="text-success fw-bold">Total: 79.341</span></div>
+                                <div class="col-sm-6">
+                                    <select class="float-end sort_select" name="sort_drop">
+                                        <option value="time_sup_desc" selected>Mới nhất</option>
+                                        <option value="time_sup_asc">Cũ nhất</option>
+                                    </select>
+                                    <select class="float-end sort_select" name="limit_select">
+                                        <option value="20" selected>20 / page</option>
+                                        <option value="50">50 / page</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overflow-auto">
+                            <table class="table table-collapse margintop15">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="check_all"></th>
+                                        <th>OrderID</th>
+                                        <th>SKU</th>
+                                        <th>QTY</th>
+                                        <th>Image</th>
+                                        <th class="text-center">Variants</th>
+                                        <th class="text-center">Ngày order</th>
+                                        <th class="text-center">Ngày đẩy xưởng</th>
+                                        <th class="text-center">Country</th>
+                                        <th class="text-right">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr id="order_228741">
+                                        <td class="vertical-middle"><input type="checkbox" class="check_item" value="228741"></td>
+                                        <td class="vertical-middle"><span>4076013444-228741</span></td>
+                                        <td class="vertical-middle"><b>ESW06349</b></td>
+                                        <td class="text-center vertical-middle"><b>1</b></td>
+                                        <td class="vertical-middle">
+                                            <img width="68" class="img-responsive" src="https://i.etsystatic.com/...jpg">
+                                        </td>
+                                        <td colspan="5">
+                                            <table class="table table-collapse mb-0">
+                                                <tr class="border-0">
+                                                    <td width="45%">
+                                                        <p class="mb-1">Size/ Stream on sleeve option : Sweatshirt L/Yes</p>
+                                                        <p class="mb-1">Color : White</p>
+                                                        <p class="mb-1">Personalization : <b>Mrs Bennett...</b></p>
+                                                        <p class="variant_name mb-1"><b>Sweatshirt / L / White</b></p>
+                                                    </td>
+                                                    <td width="13%">03-06-2026</td>
+                                                    <td width="13%">07-06-2026</td>
+                                                    <td width="15%">
+                                                        <span>United States</span>
+                                                        <p class="text-danger fs-12">Xưởng Streamhub</p>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <div class="dropdown">
+                                                            <button class="btn-status dropdown-toggle">Chưa sản xuất</button>
+                                                            </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <div class="row">
+                                                <div class="col-5">
+                                                    <div class="item-note-content text-danger">
+                                                        <p>Design Lỗi: đổi sang chỉ navy, chữ B viết hoa</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-7 text-right">
+                                                    <a class="btn btn-primary btn-xs"><i class="bi bi-printer"></i> Lệnh sản xuất</a>
+                                                    <div class="d-flex align-items-center justify-content-end">
+                                                        <div class="fw-bold me-2">Giữa ngực: </div>
+                                                        <div class="file-item">EMB</div>
+                                                        <div class="file-item">DST</div>
+                                                        <div class="file-item">pdf</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="page-list mb-50 mt-50">
+                            <ul class="pagination">
+                                <li class="page-item prev disabled"><span>«</span></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item next"><a class="page-link" href="#">»</a></li>
+                            </ul>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <div id="modal-scan" class="modal" style="display: none;">
+            <div class="modal-content">
+                <button id="close-modal">×</button>
+                <div id="reader"></div>
+            </div>
+        </div>
+
+        </div>
+</body>
+</html>

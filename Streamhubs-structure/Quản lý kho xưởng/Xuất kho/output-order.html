@@ -1,0 +1,71 @@
+<body class="sidebar-mini layout-navbar-fixed layout-fixed">
+    <div class="wrapper">
+        
+        <nav class="main-header navbar">
+            <div class="container-fluid">
+                <img src="/files/image/logo.png" alt="Logo">
+                <ul class="navbar-nav">
+                    <li><a data-lte-toggle="sidebar"><i class="bi bi-list"></i></a></li>
+                    <li><a href="/by-qrcode">QC Order</a></li>
+                    <li><a href="/scan-track">Scan Track</a></li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="dropdown user-menu">
+                        <a data-bs-toggle="dropdown"><span>Nguyễn Văn A</span></a>
+                        </li>
+                </ul>
+            </div>
+        </nav>
+
+        <aside class="main-sidebar">
+            <div class="sidebar sidebar-wrapper">
+                <ul class="nav sidebar-menu" data-lte-toggle="treeview">
+                    <li><a href="#"><p>Dashboard</p></a></li>
+                    <li><a href="#"><p>Orders</p></a></li>
+                    <li><a href="#"><p>Products</p></a></li>
+                    
+                    <li class="nav-item menu-open">
+                        <a href="#"><p>Quản lý kho xưởng</p></a>
+                        <ul class="nav nav-treeview">
+                            <li><a href="/dashboard-supplier">Dashboard</a></li>
+                            <li><a href="/in-out">Nhập kho</a></li>
+                            <li><a href="/output-order" class="active">Xuất kho</a></li>
+                            </ul>
+                    </li>
+                    
+                    <li><a href="/request-payment"><p>Đề nghị thanh toán</p></a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="content-wrapper">
+            <section class="container-fluid">
+                <div class="row pt-5">
+                    <div class="col-10 offset-1">
+                        
+                        <div>
+                            <a href="/output-order" class="btn">Xuất kho cho đơn hàng</a>
+                            <a href="/output" class="btn">Xuất kho chỉ</a>
+                            <a href="/return-inventory-error" class="btn">Hoàn kho lỗi</a>
+                            <a href="/history-inventory" class="btn">Lịch sử xuất kho</a>
+                            <a href="/return-inventory" class="btn">Hoàn kho</a>
+                        </div>
+                        
+                        <div class="card p-3 mt-2">
+                            <h4>Quét mã đơn</h4>
+                            <form id="form-output-inventory" action="/output-order" method="post">
+                                <input name="order_code" placeholder="Mã QRcode của đơn hàng">
+                            </form>
+                        </div>
+                        
+                        <div id="id-pjax" data-pjax-container="">
+                            <div class="card">
+                                </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="modal-

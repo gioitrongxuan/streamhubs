@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StreamHub</title>
+</head>
+<body>
+
+    <!-- PHẦN HEADER -->
+    <header>
+        <img src="/files/image/logo.png" alt="Logo">
+        <nav>
+            <ul>
+                <li><a href="/by-qrcode">QC Order</a></li>
+                <li><a href="/scan-track">Scan Track</a></li>
+            </ul>
+        </nav>
+        <div>
+            <p>User: Nguyễn Văn A (Quản lý kho)</p>
+            <ul>
+                <li><a href="/setting-profile">Profile</a></li>
+                <li><a href="/change-password">Change pass</a></li>
+                <li><a href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- PHẦN MENU BÊN TRÁI -->
+    <aside>
+        <nav>
+            <ul>
+                <li>Dashboard</li>
+                <li>Orders
+                    <ul>
+                        <li><a href="/orders">Orders</a></li>
+                        <li><a href="/order-example">Order mẫu</a></li>
+                    </ul>
+                </li>
+                <li>Products
+                    <ul>
+                        <li><a href="/products">List products</a></li>
+                        <li><a href="/product-type">Danh mục sản phẩm</a></li>
+                        <li><a href="/design-level">Level product</a></li>
+                    </ul>
+                </li>
+                <li>Quản lý kho xưởng
+                    <ul>
+                        <li><a href="/dashboard-supplier">Dashboard</a></li>
+                        <li><a href="/in-out">Nhập kho</a></li>
+                        <li><a href="/output-order">Xuất kho</a></li>
+                        <li><a href="/emb-thread">Quản lý chỉ</a></li>
+                        <li><a href="/gen-qrcode">Tạo QRcode</a></li>
+                        <li><a href="/inventory">Tồn kho</a></li>
+                        <li><a href="/errors">Đơn lỗi</a></li>
+                        <li><a href="/stock/order">Orders Xưởng</a></li>
+                        <li><a href="/receive-order">Receive Orders</a></li>
+                        <li><a href="/supplier">Nhà cung cấp</a></li>
+                        <li><a href="/machine">Máy thêu</a></li>
+                        <li><a href="/export-hk">Hậu kỳ</a></li>
+                        <li><a href="/shelf">Kệ hàng</a></li>
+                    </ul>
+                </li>
+                <li><a href="/request-payment">Đề nghị thanh toán</a></li>
+                <li><a href="/auto-label">Auto Label</a></li>
+                <li><a href="/documents">Documents</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- PHẦN NỘI DUNG CHÍNH (FORM) -->
+    <main>
+        <h1>Create Order</h1>
+        <form action="/admin/order/create-order" method="post" enctype="multipart/form-data">
+            
+            <fieldset>
+                <legend>Thông tin cơ bản</legend>
+                <label>Shop: 
+                    <select name="shop_id" required>
+                        <option value="">All</option>
+                        <option value="71">ArtisoulMarket</option>
+                        <!-- Các option khác... -->
+                    </select>
+                </label>
+                <label>EtsyOrderId: <input type="text" name="etsyOrderId" required></label>
+                <label>Buyer Email: <input type="text" name="buyerEmail"></label>
+                <label>Gift Message: <input type="text" name="giftMessage"></label>
+                <label><input type="checkbox" name="boxGiftYellow" value="1"> Có gói quà</label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Shipping Address (Địa chỉ giao hàng)</legend>
+                <label>Buyer Name: <input type="text" name="shippingAddress[name]" required></label>
+                <label>Country: 
+                    <select name="shippingAddress[country_id]">
+                        <option value="209">United States</option>
+                        <!-- Các option khác... -->
+                    </select>
+                </label>
+                <label>Address 1: <input type="text" name="shippingAddress[first_line]" required></label>
+                <label>Address 2: <input type="text" name="shippingAddress[second_line]"></label>
+                <label>City: <input type="text" name="shippingAddress[city]" required></label>
+                <label>State: <input type="text" name="shippingAddress[state]" required></label>
+                <label>Zipcode: <input type="text" name="shippingAddress[zip]" required></label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Order Total (Tổng đơn)</legend>
+                <label>Currency: 
+                    <select name="currency">
+                        <option value="209">USD</option>
+                        <option value="212">VND</option>
+                    </select>
+                </label>
+                <label>ItemTotal: <input type="text" name="orderTotal[itemTotal]" required></label>
+                <label>Discount: <input type="text" name="orderTotal[discount]" value="0" required></label>
+                <label>Subtotal: <input type="text" name="orderTotal[subtotal]" value="0" required></label>
+                <label>Shipping: <input type="text" name="orderTotal[shipping]" value="0" required></label>
+                <label>SalesTax: <input type="text" name="orderTotal[salesTax]" value="0" required></label>
+                <label>OrderTotal: <input type="text" name="orderTotal[orderTotal]" required></label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Order Items (Sản phẩm)</legend>
+                <label>Listing Name: <input type="text" name="transactions[listingName][]" required></label>
+                <label>Listing Image: <input type="file" name="transactions[listingImgUrl][]" required></label>
+                <label>Quantity: <input type="number" name="transactions[quantity][]" required></label>
+                <label>Price: <input type="text" name="transactions[price][]" required></label>
+                
+                <label>Option1 Key: <input type="text" name="transactions[listingOptions][option1][key][]"></label>
+                <label>Option1 Value: <input type="text" name="transactions[listingOptions][option1][value][]"></label>
+                
+                <label>Option2 Key: <input type="text" name="transactions[listingOptions][option2][key][]"></label>
+                <label>Option2 Value: <input type="text" name="transactions[listingOptions][option2][value][]"></label>
+                
+                <label>Option3 Key: <input type="text" name="transactions[listingOptions][option3][key][]"></label>
+                <label>Option3 Value: <input type="text" name="transactions[listingOptions][option3][value][]"></label>
+            </fieldset>
+
+            <button type="button">Thêm order item</button>
+            <button type="submit">Thêm Order Mới</button>
+        </form>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<body class="sidebar-mini layout-navbar-fixed layout-fixed">
+    <div class="wrapper">
+        
+        <nav class="main-header navbar">
+            </nav>
+
+        <aside class="main-sidebar">
+            <div class="sidebar sidebar-wrapper">
+                <ul class="nav sidebar-menu" data-lte-toggle="treeview">
+                    <li class="nav-item menu-open">
+                        <a href="#"><p>Quản lý kho xưởng</p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a href="/errors" class="nav-link active"><p>Đơn lỗi</p></a></li>
+                            </ul>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="content-wrapper">
+            <section class="container-fluid">
+                <div class="card mt-3 p-3">
+                    
+                    <h4><span class="d-inline-block mt-2">Danh sách item lỗi</span></h4>
+                    <hr class="mb-0">
+                    
+                    <form id="form-error-inventory" class="filter-form" action="/errors" method="get">
+                        <div class="row">
+                            <div class="col-12 d-flex flex-wrap">
+                                <div class="input-box me-2 daterangeBox">
+                                    <label class="text-muted">Date</label>
+                                    <input class="form-control daterange" type="text" id="daterange">
+                                    <input name="start_error" type="hidden" id="start">
+                                    <input name="end_error" type="hidden" id="end">
+                                </div>
+                                
+                                <div class="input-box me-2 mb-2">
+                                    <label class="text-muted">Lỗi do ai</label>
+                                    <select class="form-select" name="reason" onchange="jsCommon.changeFilter()">
+                                        <option value="">Tất cả</option>
+                                        <option value="1">Xưởng</option>
+                                        <option value="2">CS</option>
+                                        <option value="3">Designer</option>
+                                        <option value="4">Phôi</option>
+                                        <option value="5">QC</option>
+                                        </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div id="id-pjax" data-pjax-container>
+                        
+                        <div class="row">
+                            <div class="col mt-3">
+                                <span class="text-15 text-bold text-success totalCount">Tổng số: 3841</span>
+                                <a class="btn btn-success btn-sm float-right"><i class="bi bi-cloud-download"></i> Export</a>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-1 mb-2">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Order ID</th>
+                                        <th>Product</th>
+                                        <th>Ngày thêm</th>
+                                        <th>Lỗi tại?</th>
+                                        <th width="50%">Lý do</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>4078402738</td>
+                                        <td>Baby Dad Cap Washed / Green</td>
+                                        <td>06-06-2026</td>
+                                        <td>Phôi</td>
+                                        <td class="text-danger">rách</td>
+                                    </tr>
+                                    </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="page-list mb-50 mt-50">
+                            <ul class="pagination">
+                                <li class="page-item prev disabled"><span>«</span></li>
+                                <li class="page-item active"><a class="page-link" href="/errors?page=1">1</a></li>
+                                <li class="page-item"><a class="page-link" href="/errors?page=2">2</a></li>
+                                <li class="page-item next"><a class="page-link" href="/errors?page=2">»</a></li>
+                            </ul>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+            
+            <div class="offcanvas offcanvas-end" id="offcanvasDetailShelf">
+                <div class="offcanvas-header">
+                    <h5>Thông tin kệ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+                <div class="offcanvas-body" id="shelf-canvas-detail"></div>
+            </div>
+            
+        </div>
+
+        <div id="modal-scan"

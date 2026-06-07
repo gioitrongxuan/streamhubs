@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>StreamHub</title>
+    </head>
+
+<body class="sidebar-mini layout-navbar-fixed layout-fixed app-loaded sidebar-collapse">
+    <div class="wrapper">
+        
+        <nav class="header-stream main-header navbar navbar-expand navbar-white navbar-light">
+            <div class="container-fluid">
+                <img src="/files/image/logo.png" width="200">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" data-lte-toggle="sidebar"><i class="bi bi-list"></i></a></li>
+                    </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown user-menu">
+                        <a href="#" class="nav-link dropdown-toggle">
+                            <img src="/files/image/user/avatar-default_150x150.jpg" class="user-image">
+                            <span>Nguyễn Văn A</span>
+                        </a>
+                        </li>
+                </ul>
+            </div>
+        </nav>
+
+        <aside class="main-sidebar sidebar-light-primary elevation-4">
+            <div class="sidebar sidebar-wrapper">
+                <nav class="mt-2">
+                    <ul class="nav sidebar-menu flex-column">
+                        <li class="nav-item"><a href="#" class="nav-link">Dashboard</a></li>
+                        <li class="nav-item menu-open"><a href="#" class="nav-link">Orders</a></li>
+                        <li class="nav-item"><a href="#" class="nav-link">Products</a></li>
+                        <li class="nav-item"><a href="#" class="nav-link">Quản lý kho xưởng</a></li>
+                        </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <div class="content-wrapper">
+            <section class="p-3">
+                <p class="text-danger fs-7 d-flex over-parent gap-2">
+                    <a class='text-danger'><b>456</b> order quá 2 ngày chưa Design</a>
+                    <a class='text-danger'><b>709</b> order quá 3 ngày chưa Sản xuất xong</a>
+                    </p>
+
+                <div class="box-body p-2 bg-white border rounded">
+                    <h4>
+                        <span class="d-inline-block mt-2">Order List</span>
+                        <div class="btn-group float-end">
+                            <button class="btn btn-primary">Create Order</button>
+                            <button class="btn btn-info">Export CSV</button>
+                        </div>
+                    </h4>
+                    
+                    <form id="w0" class="filter-form marginbottom15">
+                        <div class="row">
+                            <div class="input-box"><label>Etsy Order ID</label><input type="text"></div>
+                            <div class="input-box"><label>Date</label><input type="text"></div>
+                            <div class="input-box"><label>Order Status</label><select>...</select></div>
+                            <div class="input-box"><label>Shop</label><select>...</select></div>
+                            <div class="input-box"><label>Designer</label><select>...</select></div>
+                            </div>
+                    </form>
+
+                    <div id="id-pjax">
+                        <div class="statistic-status d-flex flex-wrap gap-1">
+                            <a href="#" class="btn-statis-status">Mới <b>(387)</b></a>
+                            <a href="#" class="btn-statis-status">Đang Design <b>(539)</b></a>
+                            </div>
+
+                        <div id="menu2" class="mt-3 mb-2 row">
+                            <div class="col-xs-4 col-sm-6">
+                                <span class="totalCount">Total: 99.845 - Total Quantity: 117.463</span>
+                            </div>
+                            <div class="col-xs-8 col-sm-6">
+                                <select class="sort_select" name="sort_drop">...</select>
+                                <select class="sort_select" name="limit_select">...</select>
+                            </div>
+                        </div>
+
+                        <div class="overflow-auto" style="min-height: 500px;">
+                            <table class="table table-head-fixed table-hover">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="check_all"></th>
+                                        <th>Order ID</th>
+                                        <th>Status</th>
+                                        <th>Listing</th>
+                                        <th>QTY</th>
+                                        <th>Order Total</th>
+                                        </tr>
+                                </thead>
+                                <tbody>
+                                    <tr id="row_order_203490">
+                                        <td><input type="checkbox"></td>
+                                        <td>
+                                            <a>4080541638</a>
+                                            </td>
+                                        <td><button class="btn-status">Mới</button></td>
+                                        <td>
+                                            <img width="50" src="[URL_HÌNH_ẢNH_ĐÃ_RÚT_GỌN]">
+                                            <span>Personalized Strawberry...</span>
+                                        </td>
+                                        <td>1</td>
+                                        <td>$31.82</td>
+                                        </tr>
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="page-list mb-50 mt-50 d-flex justify-content-center">
+                            <ul class="pagination">
+                                <li class="page-item prev disabled"><span>&laquo;</span></li>
+                                <li class="page-item active"><a href="#">1</a></li>
+                                <li class="page-item"><a href="#">2</a></li>
+                                <li class="page-item next"><a href="#">&raquo;</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

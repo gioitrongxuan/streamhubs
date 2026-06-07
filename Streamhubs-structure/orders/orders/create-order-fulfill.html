@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StreamHub</title>
+</head>
+<body>
+
+    <header>
+        <img src="/files/image/logo.png" alt="Logo">
+        <nav>
+            <ul>
+                <li><a href="/by-qrcode">QC Order</a></li>
+                <li><a href="/scan-track">Scan Track</a></li>
+            </ul>
+        </nav>
+        <div>
+            <p>User: Nguyễn Văn A (Quản lý kho)</p>
+            <ul>
+                <li><a href="/setting-profile">Profile</a></li>
+                <li><a href="/change-password">Change pass</a></li>
+                <li><a href="/logout">Sign out</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <aside>
+        <nav>
+            <ul>
+                <li>Dashboard</li>
+                <li>Orders
+                    <ul>
+                        <li><a href="/orders">Orders</a></li>
+                        <li><a href="/order-example">Order mẫu</a></li>
+                    </ul>
+                </li>
+                <li>Products
+                    <ul>
+                        <li><a href="/products">List products</a></li>
+                        <li><a href="/product-type">Danh mục sản phẩm</a></li>
+                        <li><a href="/design-level">Level product</a></li>
+                    </ul>
+                </li>
+                <li>Quản lý kho xưởng
+                    <ul>
+                        <li><a href="/dashboard-supplier">Dashboard</a></li>
+                        <li><a href="/in-out">Nhập kho</a></li>
+                        <li><a href="/output-order">Xuất kho</a></li>
+                        <li><a href="/emb-thread">Quản lý chỉ</a></li>
+                        <li><a href="/gen-qrcode">Tạo QRcode</a></li>
+                        <li><a href="/inventory">Tồn kho</a></li>
+                        <li><a href="/errors">Đơn lỗi</a></li>
+                        <li><a href="/stock/order">Orders Xưởng</a></li>
+                        <li><a href="/receive-order">Receive Orders</a></li>
+                        <li><a href="/supplier">Nhà cung cấp</a></li>
+                        <li><a href="/machine">Máy thêu</a></li>
+                        <li><a href="/export-hk">Hậu kỳ</a></li>
+                        <li><a href="/shelf">Kệ hàng</a></li>
+                    </ul>
+                </li>
+                <li><a href="/request-payment">Đề nghị thanh toán</a></li>
+                <li><a href="/auto-label">Auto Label</a></li>
+                <li><a href="/documents">Documents</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <h1>Create Order</h1>
+        <form action="/create-order-fulfill" method="post" enctype="multipart/form-data">
+            
+            <fieldset>
+                <legend>Thông tin cơ bản</legend>
+                <label>Shop: 
+                    <select name="shop_id" required>
+                        <option value="">Chọn shop</option>
+                        <option value="71">ArtisoulMarket</option>
+                        </select>
+                </label>
+                <label>Loại đơn:
+                    <select name="order_type" required>
+                        <option value="">Chọn shop</option>
+                        <option value="ME">Cho Media</option>
+                        <option value="MA">Đơn mẫu</option>
+                        <option value="DE">Test Mẫu Design</option>
+                        <option value="MU">Mượn phôi</option>
+                    </select>
+                </label>
+                <label>Buyer Name: <input type="text" name="shippingAddress[name]" required></label>
+                <label>Buyer Email: <input type="text" name="buyerEmail"></label>
+                <label>Phone: <input type="text" name="shippingAddress[phone]"></label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Shipping Address (Địa chỉ giao hàng)</legend>
+                <label>Country: 
+                    <select name="shippingAddress[country_id]">
+                        <option value="209">United States</option>
+                        <option value="212">Việt Nam</option>
+                    </select>
+                </label>
+                <label>Address 1: <input type="text" name="shippingAddress[first_line]"></label>
+                <label>Address 2: <input type="text" name="shippingAddress[second_line]"></label>
+                <label>City: <input type="text" name="shippingAddress[city]"></label>
+                <label>State: <input type="text" name="shippingAddress[state]"></label>
+                <label>Zipcode: <input type="text" name="shippingAddress[zip]"></label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Order Items (Sản phẩm)</legend>
+                <label>SKU: <input type="text" name="transactions[sku][]"></label>
+                <label>Quantity: <input type="text" name="transactions[quantity][]" required></label>
+                <label>Design Url: <input type="text" name="transactions[design_url][]"></label>
+                <label>Image: <input type="file" name="transactions[listingImgUrl][]"></label>
+            </fieldset>
+
+            <button type="button">Thêm order item</button>
+            <button type="submit">Thêm Order Mới</button>
+        </form>
+    </main>
+
+</body>
+</html>

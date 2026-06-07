@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>StreamHub - Nhập Kho</title>
+    
+    <link href="/files/adlte/dist/css/adminlte.min.css" rel="stylesheet">
+    <link href="/themes/v2/files/css/style_admin.css" rel="stylesheet">
+    </head>
+
+<body class="sidebar-mini layout-navbar-fixed layout-fixed">
+    <div class="wrapper">
+        
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+            </nav>
+
+        <aside class="main-sidebar sidebar-light-primary elevation-4">
+            <div class="sidebar sidebar-wrapper">
+                <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview">
+                    <li class="nav-item menu-open">
+                        <a href="#" class="nav-link"><i class="bi bi-house-add"></i><p>Quản lý kho xưởng</p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a href="/dashboard-supplier" class="nav-link"><p>Dashboard</p></a></li>
+                            <li class="nav-item"><a href="/in-out" class="nav-link active"><p>Nhập kho</p></a></li>
+                            <li class="nav-item"><a href="/output-order" class="nav-link"><p>Xuất kho</p></a></li>
+                            </ul>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="content-wrapper">
+            <section class="container-fluid">
+                <div class="box-body no-padding">
+                    <div class="row pt-3">
+                        <div class="col-12">
+                            
+                            <div class="mb-2">
+                                <a class="btn btn-outline-success btn-sm" href="/in-out">Nhập kho phôi</a>
+                                <a class="btn btn-outline-warning btn-sm" href="/admin/inventory/input-other">Nhập kho sản phẩm khác</a>
+                                <a class="btn btn-outline-info btn-sm" href="/history-input">Lịch sử nhập kho</a>
+                                <a class="btn btn-outline-danger btn-sm" href="/history-print">Lịch sử in phiếu</a>
+                            </div>
+
+                            <div class="card p-3">
+                                <h4>Nhập kho</h4>
+                                <hr class="m-0">
+                                
+                                <div class="row">
+                                    <div class="col-3">
+                                        <div class="input-box form-group">
+                                            <label class="text-muted">Chọn kệ</label>
+                                            <select class="form-select" name="shelf" required="required">
+                                                <option value="">Chọn số kệ</option>
+                                                <option value="1">Kệ số 1 (1595)</option>
+                                                <option value="2">Kệ số 2 (1004)</option>
+                                                <option value="3">Kệ số 3 (1245)</option>
+                                                <option value="51">Kệ số 51 (1519)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col">
+                                        <input class="form-control product_code_in" name="product_code_in" style="height: 60px;" placeholder="Mã QRCode" oninput="inventory.inputQrcode(this,'in')"/>
+                                    </div>
+                                </div>
+                                
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="modal-scan" class="modal">
+            <div class="modal-content" style="width: 100%;">
+                <button class="close-btn" id="close-modal">&times;</button>
+                <div id="reader"></div>
+                <video id="product-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <canvas id="capture-canvas" style="display: none;"></canvas>
+                <button id="capture-btn" class="btn btn-success mt-2 rounded-pill" style="display: none;">

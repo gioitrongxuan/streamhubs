@@ -1,0 +1,114 @@
+<body class="sidebar-mini layout-navbar-fixed layout-fixed">
+    <div class="wrapper">
+        
+        <nav class="main-header navbar">
+            </nav>
+
+        <aside class="main-sidebar">
+            <div class="sidebar sidebar-wrapper">
+                <ul class="nav sidebar-menu" data-lte-toggle="treeview">
+                    <li class="nav-item menu-open">
+                        <a href="#"><p>Quản lý kho xưởng</p></a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item"><a href="/inventory" class="nav-link active"><p>Tồn kho</p></a></li>
+                            </ul>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="content-wrapper">
+            <section class="container-fluid">
+                <div class="card mt-3 p-3">
+                    
+                    <div class="mt-3">
+                        <a class="btn btn-outline-info" href="/inventory">Tồn kho phôi áo</a>
+                        <a class="btn btn-outline-primary" href="/inventory-thread">Tồn kho chỉ thêu</a>
+                        <a class="btn btn-outline-warning" href="/inventory-day">Tồn kho hàng ngày</a>
+                        <a class="btn btn-outline-success" href="/get-qrcode">Get mã tồn</a>
+                        <a class="btn btn-primary float-right"><i class="bi bi-printer"></i> In báo cáo</a>
+                        <a class="btn btn-success float-right me-2"><i class="bi bi-file-earmark-excel"></i> Export</a>
+                    </div>
+                    <hr>
+
+                    <h4>Số lượng tồn kho</h4>
+                    <form id="form-inventory" class="filter-form" action="/inventory" method="get" data-pjax>
+                        <div class="row">
+                            <div class="col-12 d-flex flex-wrap">
+                                <div class="input-box me-2">
+                                    <select name="product_type" class="form-select">
+                                        <option value="">Chọn loại sản phẩm</option>
+                                        </select>
+                                </div>
+                                
+                                <div class="box_variant d-flex"></div> <div class="input-box me-2">
+                                    <select name="supplier_id" class="form-select">
+                                        <option value="">Chọn nhà cung cấp</option>
+                                        </select>
+                                </div>
+                                
+                                <div class="input-box me-2">
+                                    <input type="text" name="lot_number" class="form-control" placeholder="Lô sản xuất">
+                                </div>
+                                
+                                <div>
+                                    <button class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <hr>
+
+                    <div id="id-pjax" data-pjax-container>
+                        
+                        <h4 class="fs-5">
+                            <span>Tổng số lượng: <b>64.216</b></span>
+                            <span class="ms-3">Tổng số tiền: <b>579.496.500 VND</b> &nbsp;&nbsp; <b>223.986,63 USD</b></span>
+                        </h4>
+                        
+                        <div id="list-inventory">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Nhà cung cấp</th>
+                                        <th>Số lô</th>
+                                        <th>Loại sản phẩm</th>
+                                        <th>Màu sắc</th>
+                                        <th>Kích thước</th>
+                                        <th>Số lượng</th>
+                                        <th>Tổng tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Vulcano</td>
+                                        <td>VUL06052026</td>
+                                        <td>Sweatshirt</td>
+                                        <td>Light Pink</td>
+                                        <td>L</td>
+                                        <td>404</td>
+                                        <td>$2,823.96</td>
+                                    </tr>
+                                    </tbody>
+                            </table>
+                            
+                            <div style="width: 100%">
+                                <div style="width: 60%"></div>
+                                <div style="width: 40%; text-align: center; float: right;">
+                                    <p style="font-style: italic;">Ngày 07 tháng 06 năm 2026</p>
+                                    <h4>Thủ kho</h4>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+        </div>
+
+        <div id="modal-scan" class="modal">...</div>
+        <div class="list-notification"></div>
+        
+        </div>
+</body>
