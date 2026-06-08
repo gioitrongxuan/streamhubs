@@ -10,13 +10,14 @@ Module tự động sinh và in nhãn vận chuyển (shipping label / tracking 
 
 ```mermaid
 flowchart TD
-    A[Order trạng thái: Sản xuất xong\nHậu kì hoàn thành] --> B{Có địa chỉ giao hàng hợp lệ?}
+    A["Order trạng thái: out_stock\n(đã xuất kho /output-order)"] --> B{Có địa chỉ giao hàng hợp lệ?}
     B -- Không --> ERR[Cảnh báo: thiếu thông tin địa chỉ]
     B -- Có --> C[Gọi Carrier API\nSinh tracking number]
-    C --> D[Tạo nhãn PDF]
-    D --> E[In nhãn\nKết nối máy in]
-    E --> F[Gắn tracking vào order]
-    F --> G[Sẵn sàng xuất kho\n/output-order]
+    C --> D[Tạo nhãn PDF\nauto_labels.status = generated]
+    D --> E["Sync tracking:\norder_packages.tracking_number = tracking\n(cùng 1 DB transaction)"]
+    E --> F[In nhãn\nKết nối máy in\nauto_labels.status = printed]
+    F --> G[Dán nhãn lên kiện hàng]
+    G --> H["Scan tracking /scan-track\norders.status = shipped\ncập nhật Etsy"]
 ```
 
 ## Chức năng dự kiến
@@ -46,12 +47,12 @@ flowchart TD
 
 | Thông tin | Nguồn dữ liệu |
 |-----------|---------------|
-| Tên người nhận | `orders.streamer_name` |
-| Địa chỉ giao | `orders.shipping_address` |
-| Quốc gia | `order_items.country` |
-| Số điện thoại | `orders.streamer_phone` |
+| Tên người nhận | `orders.receiver_name` |
+| Địa chỉ giao | `orders.address_line1`, `orders.address_line2`, `orders.city`, `orders.state`, `orders.zipcode` |
+| Quốc gia | `orders.country` |
+| Số điện thoại | `orders.phone` |
 | Tên shop (người gửi) | `shops.sender_name` |
-| Địa chỉ gửi | Cấu hình hệ thống |
+| Địa chỉ gửi | `shops.sender_address` |
 | Nội dung hàng hóa | `product_types.name` |
 | Tracking number | Trả về từ Carrier API |
 

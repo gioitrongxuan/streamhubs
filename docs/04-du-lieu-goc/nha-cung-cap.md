@@ -39,7 +39,7 @@
 
 - **Không xóa** NCC đã có lịch sử giao dịch — chỉ vô hiệu hóa (`is_active = 0`)
 - Mỗi loại sản phẩm (`product_types`) có thể liên kết một NCC mặc định
-- Đề nghị thanh toán bắt buộc phải chọn NCC — thông tin tài khoản ngân hàng được kéo tự động
+- Đề nghị thanh toán **nên** chọn NCC — thông tin tài khoản ngân hàng được kéo tự động. Trường `supplier_id` có thể để NULL khi phân loại là `other` hoặc `shipping` (chi phí phát sinh không gắn NCC cụ thể)
 
 ---
 

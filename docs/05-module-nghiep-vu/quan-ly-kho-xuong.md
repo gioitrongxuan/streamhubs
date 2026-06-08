@@ -21,8 +21,8 @@ Tổng quan hoạt động xưởng:
 **Luồng:**
 1. Chọn kệ đích từ dropdown (Kệ số 1, 2, 3, 51, ...)
 2. Quét QR code phôi qua camera hoặc nhập thủ công
-3. Hệ thống ghi nhận: `inventory_transactions.type = 'in'`
-4. Số lượng kệ được cập nhật tự động
+3. Hệ thống ghi bản ghi vào bảng `inventory_in` (lot_id, qty, shelf_id)
+4. Cập nhật atomic: `inventory_lots.remaining_qty += qty` và `shelves.current_count += qty`
 
 **Tabs:**
 - **Nhập kho phôi** — phôi blank sản phẩm chính
@@ -37,8 +37,8 @@ Tổng quan hoạt động xưởng:
 Xuất phôi cho lệnh sản xuất:
 1. Căn cứ vào lệnh SX (`stock/order`)
 2. Quét QR code phôi cần xuất
-3. Hệ thống trừ tồn, ghi `inventory_transactions.type = 'out'`
-4. Gắn transaction với `order_item_id`
+3. Hệ thống ghi bản ghi vào bảng `inventory_out` (lot_id, order_item_id, type='order', qty)
+4. Cập nhật atomic: `inventory_lots.remaining_qty -= qty` và `shelves.current_count -= qty`
 
 ---
 
@@ -92,10 +92,29 @@ Danh sách các order đã đẩy sang xưởng:
 
 ### 6. Nhận hàng từ Xưởng (`/receive-order`)
 
-Nhận và xác nhận hàng hoàn thành từ xưởng sản xuất:
-- Quét QR xác nhận nhận hàng
-- Ghi nhận số lượng nhận được
-- Phát hiện và báo cáo lỗi sản xuất
+Ghi nhận hàng thêu được xưởng gửi về kho. Mỗi lần nhận = 1 bản ghi `receive_order_logs`.
+
+**Giao diện:**
+- Trang chính: **"Quét mã đơn"** — scan QR hoặc nhập Order ID để tìm đơn cần nhận
+- Nút **"+ Add thông tin đơn hàng đã nhận"** → mở modal
+
+**Modal "Add thông tin đơn hàng":**
+
+| Trường | Ghi chú |
+|--------|---------|
+| Gửi từ xưởng | Dropdown chọn `suppliers` (xưởng thêu gửi về) |
+| Ngày nhận | Date picker, mặc định hôm nay |
+| Phí ship | Chi phí vận chuyển từ xưởng về kho (VND) |
+| Số lượng gửi | Số lượng xưởng báo đã gửi |
+| Số lượng nhận | Số lượng thực nhận được — ghi chú nếu lệch |
+
+**Luồng:**
+1. Scan QR hoặc nhập Order ID
+2. Điền modal → Submit → ghi `receive_order_logs`
+3. Hệ thống chuyển `orders.status → in_finishing`
+4. Nếu `received_qty < sent_qty`: ghi note sai lệch, cần follow-up với xưởng
+
+**Ghi DB:** `receive_order_logs` (order_id, supplier_id, received_date, shipping_fee, sent_qty, received_qty, received_by)
 
 ---
 

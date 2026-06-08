@@ -31,7 +31,7 @@ StreamHub là hệ thống quản lý vận hành tích hợp (ERP lite) cho doa
 |-----|-------|--------|
 | `/dashboard` | Trang tổng quan chính | Dashboard |
 | `/orders` | Danh sách order Etsy | Orders |
-| `/order-example` | Xem mẫu order | Orders |
+| `/order-example` | Danh sách order của shop (alias cho `/orders`, lọc theo shop cụ thể) | Orders |
 | `/by-qrcode` | QC order bằng QR scan | Kho xưởng |
 | `/scan-track` | Quét tracking số | Kho xưởng |
 | `/products` | Danh sách sản phẩm | Products |

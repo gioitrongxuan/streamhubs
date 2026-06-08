@@ -18,7 +18,7 @@ Danh mục loại sản phẩm là nền tảng để phân loại order, giao x
 | Thuộc tính | Mô tả |
 |-----------|-------|
 | `name` | Tên hiển thị (Baby Banner, Hoodie, ...) |
-| `code` | Mã nội bộ, dùng trong SKU |
+| `short_name` | Mã nội bộ ngắn, dùng trong SKU (VD: `EQZ`, `HDI`, `BBN`) |
 | `design_level_id` | Liên kết cấp độ thiết kế |
 | `default_supplier_id` | Xưởng SX mặc định |
 | `is_active` | Đang sử dụng hay không |
