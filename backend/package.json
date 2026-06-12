@@ -1,0 +1,31 @@
+{
+  "name": "streamhub-backend",
+  "version": "1.0.0",
+  "description": "StreamHub — Backend API (ERP lite cho POD/Embroidery trên Etsy)",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test 'src/**/*.test.ts'",
+    "db:migrate": "tsx scripts/run-sql.ts database/migrations",
+    "db:seed": "tsx scripts/run-sql.ts database/seeds"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.11.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
