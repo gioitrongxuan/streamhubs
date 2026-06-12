@@ -1,6 +1,7 @@
 /**
  * Chạy tuần tự các file .sql trong một thư mục (migrations hoặc seeds).
- * Dùng: tsx scripts/run-sql.ts database/migrations
+ * JS thuần để chạy được cả trong image production (không cần tsx).
+ * Dùng: node scripts/run-sql.mjs database/migrations
  */
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -9,7 +10,7 @@ import 'dotenv/config';
 
 const dir = process.argv[2];
 if (!dir) {
-  console.error('Cách dùng: tsx scripts/run-sql.ts <thư mục sql>');
+  console.error('Cách dùng: node scripts/run-sql.mjs <thư mục sql>');
   process.exit(1);
 }
 

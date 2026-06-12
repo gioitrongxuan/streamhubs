@@ -1,0 +1,19 @@
+# Staging/Production trên 1 VPS — database dùng managed MySQL (RDS) theo ADR-001.
+# Chạy: docker compose -f docker-compose.prod.yml up -d --build
+# Migration: docker compose -f docker-compose.prod.yml exec app node scripts/run-sql.mjs database/migrations
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-streamhub}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-12h}

@@ -10,8 +10,8 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test 'src/**/*.test.ts'",
-    "db:migrate": "tsx scripts/run-sql.ts database/migrations",
-    "db:seed": "tsx scripts/run-sql.ts database/seeds"
+    "db:migrate": "node scripts/run-sql.mjs database/migrations",
+    "db:seed": "node scripts/run-sql.mjs database/seeds"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
