@@ -2,6 +2,8 @@
 
 Mô hình theo [ADR-001](../02-kien-truc-csdl/tech-stack-decision.md): monolith 1 node trên VPS/EC2, database dùng managed MySQL (RDS), file lưu S3.
 
+> **Triển khai lên AWS EC2:** xem hướng dẫn chi tiết từng bước tại [ec2.md](ec2.md) — gồm script cài đặt một lệnh `deploy/ec2-setup.sh`, gắn domain + HTTPS, backup và nâng cấp lên RDS.
+
 ## CI (GitHub Actions)
 
 Workflow [.github/workflows/ci.yml](../../.github/workflows/ci.yml) chạy trên mọi PR và push vào `master`:

@@ -1,0 +1,44 @@
+# Triển khai trên 1 EC2 instance: app + MySQL cùng máy (phương án khởi đầu).
+# Khi cần độ bền cao hơn → chuyển DB sang RDS và dùng docker-compose.prod.yml.
+#
+# Chạy: docker compose -f docker-compose.ec2.yml up -d --build
+# Biến lấy từ file .env cùng thư mục (xem deploy/ec2-setup.sh — tự sinh nếu chưa có).
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "80:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: streamhub
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: streamhub
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-12h}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: streamhub
+      MYSQL_USER: streamhub
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "streamhub", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  mysql_data:
