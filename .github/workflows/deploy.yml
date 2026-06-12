@@ -1,0 +1,39 @@
+# Auto-deploy: merge/push vào master → SSH vào EC2 kéo code mới và chạy script deploy.
+# Yêu cầu 3 secrets (Settings → Secrets and variables → Actions):
+#   EC2_HOST     IP public hoặc domain của máy chủ
+#   EC2_USER     user SSH (vd: ubuntu)
+#   EC2_SSH_KEY  toàn bộ nội dung private key (.pem) tương ứng
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: # cho phép chạy tay từ tab Actions khi cần
+
+# Mỗi lúc chỉ một deploy; lần sau xếp hàng chờ chứ không cắt ngang lần đang chạy
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy lên EC2
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # build trên máy RAM nhỏ có thể mất vài phút
+    steps:
+      - name: SSH vào EC2 — git pull + chạy deploy/ec2-setup.sh
+        env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new "$USER@$HOST" '
+            set -e
+            cd ~/streamhubs
+            git checkout master
+            git pull --ff-only origin master
+            bash deploy/ec2-setup.sh
+          '
