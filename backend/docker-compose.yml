@@ -1,0 +1,18 @@
+# Môi trường dev: MySQL 8 cho StreamHub backend.
+# Chạy: docker compose up -d, sau đó npm run db:migrate && npm run db:seed
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: streamhub
+      MYSQL_USER: streamhub
+      MYSQL_PASSWORD: streamhub
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  mysql_data:

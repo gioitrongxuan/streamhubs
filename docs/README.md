@@ -13,6 +13,7 @@ StreamHub là hệ thống quản lý vận hành tích hợp (ERP lite) cho doa
 | 3 | **Quản trị Hệ thống** | [03-quan-tri-he-thong/](03-quan-tri-he-thong/README.md) |
 | 4 | **Dữ liệu Gốc (MDM)** | [04-du-lieu-goc/](04-du-lieu-goc/README.md) |
 | 5 | **Các Module Nghiệp vụ** | [05-module-nghiep-vu/](05-module-nghiep-vu/README.md) |
+| 6 | **Triển khai** | [06-trien-khai/](06-trien-khai/README.md) |
 
 ---
 
