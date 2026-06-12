@@ -56,10 +56,16 @@ export function createApp(): express.Express {
     dashboardRouter,
   ]);
 
-  // Frontend tĩnh (SPA) — public/ nằm cạnh src/ (dev) hoặc dist/ (build)
+  // Frontend tĩnh (SPA) — public/ nằm cạnh src/ (dev) hoặc dist/ (build).
+  // Cache-Control: no-cache = trình duyệt luôn revalidate bằng ETag (file chưa đổi → 304),
+  // nên sau mỗi lần deploy người dùng nhận ngay JS/CSS mới mà không cần hard refresh.
   const publicDir = path.join(import.meta.dirname, '..', 'public');
-  app.use(express.static(publicDir));
-  app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+  const noCache = (res: express.Response) => res.setHeader('Cache-Control', 'no-cache');
+  app.use(express.static(publicDir, { setHeaders: noCache }));
+  app.get(/^\/(?!api\/).*/, (_req, res) => {
+    noCache(res);
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
 
   app.use(errorHandler);
   return app;
