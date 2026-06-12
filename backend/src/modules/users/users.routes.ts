@@ -25,6 +25,17 @@ const USER_COLUMNS = `u.id, u.name, u.email, u.role_id, r.name AS role_name,
   u.shop_id, u.avatar, u.is_active, u.created_at`;
 
 export const usersRouter = Router();
+
+// Dropdown chọn người (designer, operator, người duyệt...) — mọi user đăng nhập đều cần
+usersRouter.get('/users/options', authenticate, async (_req, res) => {
+  const rows = await query(
+    pool,
+    `SELECT u.id, u.name, r.name AS role_name FROM users u
+     JOIN roles r ON r.id = u.role_id WHERE u.is_active = 1 ORDER BY u.name`,
+  );
+  res.json({ data: rows });
+});
+
 usersRouter.use('/users', authenticate, authorize('system.users'));
 
 usersRouter.get('/users', async (_req, res) => {

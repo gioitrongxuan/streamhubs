@@ -28,6 +28,32 @@ npm run typecheck # kiểm tra type
 npm run build && npm start  # production
 ```
 
+## Frontend (`public/`)
+
+SPA nhẹ không cần build step — vanilla ES modules + Bootstrap 5 (CDN), được chính backend phục vụ tại `/` (SPA fallback cho mọi GET không phải `/api`). Mở `http://localhost:3000` sau khi `npm run dev`.
+
+```
+public/
+  index.html            # shell
+  css/app.css           # theme theo mockup (card trắng, badge màu, panel trượt)
+  js/
+    api.js              # fetch wrapper: JWT, 401 → login, chuẩn hóa lỗi
+    ui.js               # esc/fmtMoney/badge/modal/panel/donut/pagination
+    perm.js             # bản sao client của RBAC resolver (chỉ để ẩn/hiện UI)
+    constants.js        # nhãn tiếng Việt + màu cho mọi enum trạng thái
+    app.js / routes.js  # shell + hash router + menu theo quyền
+    pages/
+      crud.js           # factory trang CRUD khai báo (9 trang master-data dùng chung)
+      payments.js       # KPI + donut + bảng (theo mockup /request-payment)
+      payment-detail.js # panel chi tiết + duyệt/từ chối/mark-paid
+      payment-create.js # form tạo ĐNTT (theo mockup /add-request-payment)
+      orders.js, order-detail.js, order-create.js, stock-orders.js, errors.js
+      inventory.js, scan.js, threads.js, receive-orders.js, auto-labels.js
+      dashboard.js, system-configs.js, master-data.js, login.js
+```
+
+Đăng nhập, đổi trạng thái order, scan QR nhập/xuất, nhận hàng xưởng, duyệt + thanh toán ĐNTT... đều thao tác được từ UI. Quyền RBAC quyết định menu và nút hiển thị (backend vẫn là nơi chặn thật).
+
 ## Cấu trúc & nguyên tắc
 
 ```

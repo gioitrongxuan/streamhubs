@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'node:path';
 import { errorHandler } from './middlewares/error-handler.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { usersRouter } from './modules/users/users.routes.js';
@@ -54,6 +55,11 @@ export function createApp(): express.Express {
     activityLogsRouter,
     dashboardRouter,
   ]);
+
+  // Frontend tĩnh (SPA) — public/ nằm cạnh src/ (dev) hoặc dist/ (build)
+  const publicDir = path.join(import.meta.dirname, '..', 'public');
+  app.use(express.static(publicDir));
+  app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(publicDir, 'index.html')));
 
   app.use(errorHandler);
   return app;

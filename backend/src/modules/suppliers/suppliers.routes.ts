@@ -20,14 +20,16 @@ const supplierSchema = z.object({
 });
 
 export const suppliersRouter = Router();
-suppliersRouter.use('/suppliers', authenticate, authorize('mdm.suppliers'));
+suppliersRouter.use('/suppliers', authenticate);
 
+// Đọc danh sách mở cho mọi user đăng nhập (dropdown NCC ở orders, kho, thanh toán);
+// thao tác ghi vẫn cần quyền mdm.suppliers
 suppliersRouter.get('/suppliers', async (_req, res) => {
   const rows = await query(pool, 'SELECT * FROM suppliers ORDER BY id');
   res.json({ data: rows });
 });
 
-suppliersRouter.post('/suppliers', async (req, res) => {
+suppliersRouter.post('/suppliers', authorize('mdm.suppliers'), async (req, res) => {
   const input = supplierSchema.parse(req.body);
   const result = await execute(
     pool,
@@ -41,7 +43,7 @@ suppliersRouter.post('/suppliers', async (req, res) => {
   res.status(201).json({ id: result.insertId });
 });
 
-suppliersRouter.patch('/suppliers/:id', async (req, res) => {
+suppliersRouter.patch('/suppliers/:id', authorize('mdm.suppliers'), async (req, res) => {
   const id = Number(req.params.id);
   const input = supplierSchema.partial().parse(req.body);
   const supplier = await queryOne(pool, 'SELECT id FROM suppliers WHERE id = ?', [id]);

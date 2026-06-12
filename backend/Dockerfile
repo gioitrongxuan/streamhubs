@@ -17,6 +17,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 COPY database ./database
 COPY scripts ./scripts
+COPY public ./public
 
 USER node
 EXPOSE 3000

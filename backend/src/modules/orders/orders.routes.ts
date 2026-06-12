@@ -43,6 +43,15 @@ ordersRouter.get('/orders', authorize('orders.view'), async (req, res) => {
   res.json(paginated(rows, total, filters));
 });
 
+/** Đếm order theo trạng thái — cho dashboard tổng quan. */
+ordersRouter.get('/orders/stats', authorize('orders.view'), async (_req, res) => {
+  const rows = await query<{ status: string; cnt: number }>(
+    pool,
+    'SELECT status, COUNT(*) AS cnt FROM orders GROUP BY status',
+  );
+  res.json({ by_status: rows });
+});
+
 ordersRouter.get('/orders/:id', authorize('orders.view'), async (req, res) => {
   const detail = await loadOrderDetail(pool, Number(req.params.id));
   if (!detail) throw new NotFoundError('Không tìm thấy order');

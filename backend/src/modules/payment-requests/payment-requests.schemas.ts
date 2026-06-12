@@ -29,6 +29,7 @@ export const listPaymentRequestsSchema = paginationSchema.extend({
   status: z.enum(['pending', 'accepted', 'partial', 'paid', 'rejected']).optional(),
   payment_group: z.enum(PAYMENT_GROUPS).optional(),
   supplier_id: z.coerce.number().int().positive().optional(),
+  q: z.string().max(100).optional(), // serial_number hoặc nội dung
   overdue: z.coerce.boolean().optional(), // derived: due_date < today AND status NOT IN (paid, rejected)
 });
 

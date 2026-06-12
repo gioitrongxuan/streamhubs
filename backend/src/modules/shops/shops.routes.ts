@@ -19,6 +19,13 @@ const shopSchema = z.object({
 });
 
 export const shopsRouter = Router();
+
+// Dropdown chọn shop khi tạo order / lọc — mọi user đăng nhập đều cần
+shopsRouter.get('/shops/options', authenticate, async (_req, res) => {
+  const rows = await query(pool, 'SELECT id, name, order_prefix FROM shops WHERE is_active = 1 ORDER BY name');
+  res.json({ data: rows });
+});
+
 shopsRouter.use('/shops', authenticate, authorize('system.shops'));
 
 shopsRouter.get('/shops', async (_req, res) => {
