@@ -32,6 +32,13 @@ export function createApp(): express.Express {
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
 
+  // API không bao giờ được cache bởi CDN/proxy (CloudFront mặc định cache 24h
+  // khi response thiếu Cache-Control → nguy cơ lộ dữ liệu giữa các user).
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
+
   app.use('/api', [
     authRouter,
     usersRouter,
