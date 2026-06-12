@@ -24,8 +24,9 @@ export async function renderSystemConfigs(root) {
   root.querySelectorAll('[data-save]').forEach((btn) => {
     btn.onclick = () => tryDo(async () => {
       const key = btn.dataset.save;
+      // CSS.escape: key là dữ liệu từ API — tránh vỡ selector khi chứa ký tự đặc biệt
       await put(`/system-configs/${encodeURIComponent(key)}`, {
-        value: root.querySelector(`[data-key="${key}"]`).value,
+        value: root.querySelector(`[data-key="${CSS.escape(key)}"]`).value,
       });
       toast(`Đã lưu ${key}`);
     });

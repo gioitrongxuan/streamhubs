@@ -141,7 +141,8 @@ export async function markPaid(
 export async function loadPaymentRequestDetail(db: Queryable, id: number) {
   const request = await queryOne(
     db,
-    `SELECT pr.*, s.name AS supplier_name, u.name AS created_by_name
+    `SELECT pr.*, s.name AS supplier_name, u.name AS created_by_name,
+            s.bank_holder, s.bank_account, s.bank_name
      FROM payment_requests pr
      LEFT JOIN suppliers s ON s.id = pr.supplier_id
      JOIN users u ON u.id = pr.created_by

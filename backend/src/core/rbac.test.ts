@@ -30,6 +30,12 @@ describe('RBAC resolvePermission', () => {
     assert.equal(resolvePermission(designer, 'unknown_module.x'), false);
   });
 
+  it('cấp quyền cả module bằng true / own áp cho mọi action bên trong', () => {
+    assert.equal(resolvePermission({ payment: true }, 'payment.create'), true);
+    assert.equal(resolvePermission({ orders: 'own' }, 'orders.edit'), 'own');
+    assert.equal(resolvePermission({ payment: true }, 'orders.view'), false);
+  });
+
   it('hasPermission coi "own" là được phép (service tự kiểm tra ownership)', () => {
     assert.equal(hasPermission(designer, 'orders.edit'), true);
   });

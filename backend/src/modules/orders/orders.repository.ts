@@ -55,7 +55,7 @@ export async function listOrders(db: Queryable, filters: z.infer<typeof listOrde
   const whereSql = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
 
   const countRow = await queryOne<{ total: number }>(db, `SELECT COUNT(*) AS total FROM orders o ${whereSql}`, params);
-  const rows = await query(
+  const rows = await query<{ id: number; items?: unknown[] }>(
     db,
     `SELECT o.id, o.order_code, o.order_type, o.etsy_order_id, o.shop_id, sh.name AS shop_name,
             o.listing_name, o.status, o.fulfill_type, o.labels, o.is_dup, o.is_digital,
@@ -71,7 +71,34 @@ export async function listOrders(db: Queryable, filters: z.infer<typeof listOrde
      LIMIT ? OFFSET ?`,
     [...params, filters.per_page, offsetOf(filters)],
   );
+
+  // with_items: kèm items trong 1 query (màn Order xưởng) — tránh client gọi N+1
+  if (filters.with_items === 1 && rows.length > 0) {
+    const items = await listItemsForOrders(db, rows.map((r) => r.id));
+    const byOrder = new Map<number, unknown[]>();
+    for (const item of items) {
+      const list = byOrder.get(item.order_id) ?? [];
+      list.push(item);
+      byOrder.set(item.order_id, list);
+    }
+    for (const row of rows) row.items = byOrder.get(row.id) ?? [];
+  }
   return { rows, total: countRow?.total ?? 0 };
+}
+
+/** Items của một tập order, kèm tên loại SP / máy / KTV — dùng cho detail và list with_items. */
+async function listItemsForOrders(db: Queryable, orderIds: number[]) {
+  if (orderIds.length === 0) return [];
+  return query<{ id: number; order_id: number }>(
+    db,
+    `SELECT oi.*, pt.name AS product_type_name, m.name AS machine_name, op.name AS operator_name
+     FROM order_items oi
+     JOIN product_types pt ON pt.id = oi.product_type_id
+     LEFT JOIN machines m ON m.id = oi.machine_id
+     LEFT JOIN users op ON op.id = oi.operator_id
+     WHERE oi.order_id IN (${orderIds.map(() => '?').join(',')})`,
+    orderIds,
+  );
 }
 
 export async function loadOrderDetail(db: Queryable, id: number) {
@@ -89,16 +116,7 @@ export async function loadOrderDetail(db: Queryable, id: number) {
   );
   if (!order) return undefined;
 
-  const items = await query<{ id: number }>(
-    db,
-    `SELECT oi.*, pt.name AS product_type_name, m.name AS machine_name, op.name AS operator_name
-     FROM order_items oi
-     JOIN product_types pt ON pt.id = oi.product_type_id
-     LEFT JOIN machines m ON m.id = oi.machine_id
-     LEFT JOIN users op ON op.id = oi.operator_id
-     WHERE oi.order_id = ?`,
-    [id],
-  );
+  const items = await listItemsForOrders(db, [id]);
   const itemIds = items.map((i) => i.id);
   const inClause = itemIds.map(() => '?').join(',');
 

@@ -8,14 +8,10 @@ import { hasPerm } from '../perm.js';
 
 export async function openPaymentDetail(id, onChange) {
   await tryDo(async () => {
-    const [request, logs, supplier] = await Promise.all([
+    const [request, logs] = await Promise.all([
       get(`/payment-requests/${id}`),
       get(`/activity-logs?entity_type=payment_request&entity_id=${id}&limit=30`),
-      null,
     ]);
-    const supplierDetail = request.supplier_id
-      ? (await get('/suppliers')).data.find((s) => s.id === request.supplier_id)
-      : null;
 
     const perms = state.user.permissions;
     const myApproval = request.approvers.find((a) => a.user_id === state.user.id);
@@ -51,12 +47,12 @@ export async function openPaymentDetail(id, onChange) {
               <td>${fmtMoney(item.unit_price, request.currency)}</td>
               <td><b>${fmtMoney(item.total, request.currency)}</b></td></tr>`).join('')}</tbody></table>
           </div>` : ''}
-          ${supplierDetail ? `<div class="sh-card mb-3">
+          ${request.supplier_id ? `<div class="sh-card mb-3">
             <div class="section-title">Phương thức thanh toán</div>
             <div class="border rounded p-3">
-              Chủ tài khoản: <b>${esc(supplierDetail.bank_holder ?? '—')}</b><br>
-              Số tài khoản: <b>${esc(supplierDetail.bank_account ?? '—')}</b><br>
-              Ngân hàng: <b>${esc(supplierDetail.bank_name ?? '—')}</b>
+              Chủ tài khoản: <b>${esc(request.bank_holder ?? '—')}</b><br>
+              Số tài khoản: <b>${esc(request.bank_account ?? '—')}</b><br>
+              Ngân hàng: <b>${esc(request.bank_name ?? '—')}</b>
             </div>
           </div>` : ''}
           <div class="sh-card mb-3">

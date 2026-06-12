@@ -15,7 +15,7 @@ const documentSchema = z.object({
 export const documentsRouter = Router();
 
 documentsRouter.get('/documents', authenticate, authorize('system.documents_view'), async (req, res) => {
-  const category = typeof req.query.category === 'string' ? req.query.category : undefined;
+  const { category } = z.object({ category: documentSchema.shape.category.optional() }).parse(req.query);
   const rows = await query(
     pool,
     `SELECT d.*, u.name AS uploaded_by_name

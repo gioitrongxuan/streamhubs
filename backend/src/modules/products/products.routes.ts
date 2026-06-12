@@ -49,7 +49,8 @@ productsRouter.post('/products', authorize('products.manage'), async (req, res) 
 
 productsRouter.patch('/products/:id', authorize('products.manage'), async (req, res) => {
   const id = Number(req.params.id);
-  const input = productSchema.partial().parse(req.body);
+  // Không cho đổi shop_id sau khi tạo — nhất quán với updateOrderSchema
+  const input = productSchema.omit({ shop_id: true }).partial().parse(req.body);
   const product = await queryOne(pool, 'SELECT id FROM products WHERE id = ?', [id]);
   if (!product) throw new NotFoundError('Không tìm thấy sản phẩm');
 

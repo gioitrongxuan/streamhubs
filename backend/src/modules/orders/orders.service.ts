@@ -1,11 +1,11 @@
 import type { z } from 'zod';
 import { execute, queryOne, withTransaction } from '../../db/pool.js';
-import { BadRequestError, ConflictError, NotFoundError } from '../../core/http-error.js';
+import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from '../../core/http-error.js';
 import type { AuthUser } from '../../middlewares/auth.js';
 import { logActivity } from '../activity-logs/activity-log.service.js';
 import { buildOrderCode } from './order-code.js';
-import { assertTransition, timestampColumnFor, type OrderStatus } from './order-status.js';
-import { findOrderById, insertOrderItem } from './orders.repository.js';
+import { assertTransition, canCancel, timestampColumnFor, type OrderStatus } from './order-status.js';
+import { findOrderById, insertOrderItem, type OrderRow } from './orders.repository.js';
 import type { createOrderSchema, mergeOrdersSchema } from './orders.schemas.js';
 
 type CreateOrderInput = z.infer<typeof createOrderSchema>;
@@ -96,29 +96,43 @@ export async function changeOrderStatus(
 
 /**
  * Gộp đơn — docs/01-phan-tich-quy-trinh/workflow.md mục 3b.
- * Quy tắc: tất cả fulfill internal, cùng địa chỉ, không gộp chuỗi nhiều cấp.
+ * Quy tắc: tất cả fulfill internal, cùng địa chỉ, không gộp chuỗi nhiều cấp,
+ * chỉ gộp khi đơn chưa xuất kho / chưa kết thúc.
+ * ownOnly = true (quyền orders.edit = "own"): mọi đơn liên quan phải do user phụ trách.
  */
 export async function mergeOrders(
   mainOrderId: number,
   input: z.infer<typeof mergeOrdersSchema>,
   user: AuthUser,
+  ownOnly = false,
 ): Promise<void> {
+  const assertMergeable = (order: OrderRow, label: string) => {
+    if (order.fulfill_type !== 'internal') throw new BadRequestError(`${label} không phải fulfill internal`);
+    if (!canCancel(order.status)) {
+      throw new ConflictError(`${label} đã xuất kho hoặc kết thúc (${order.status}) — không thể gộp`);
+    }
+    if (ownOnly && order.designer_id !== user.id) {
+      throw new ForbiddenError(`${label} không do bạn phụ trách — không thể gộp`);
+    }
+  };
+
   await withTransaction(async (conn) => {
     const main = await findOrderById(conn, mainOrderId, true);
     if (!main) throw new NotFoundError('Không tìm thấy order chính');
     if (main.merged_order_id !== null) {
       throw new ConflictError('Đơn đã được gộp vào đơn khác — không thể làm đơn chính');
     }
-    if (main.fulfill_type !== 'internal') {
-      throw new BadRequestError('Chỉ gộp được đơn fulfill internal');
-    }
+    assertMergeable(main, 'Đơn chính');
 
     for (const childId of input.child_order_ids) {
       if (childId === mainOrderId) throw new BadRequestError('Không thể gộp đơn vào chính nó');
       const child = await findOrderById(conn, childId, true);
       if (!child) throw new NotFoundError(`Không tìm thấy order #${childId}`);
       if (child.merged_order_id !== null) throw new ConflictError(`Order ${child.order_code} đã được gộp trước đó`);
-      if (child.fulfill_type !== 'internal') throw new BadRequestError(`Order ${child.order_code} không phải fulfill internal`);
+      // Chặn chuỗi nhiều cấp: đơn con không được đang là đơn chính của đơn khác
+      const grandChild = await queryOne(conn, 'SELECT id FROM orders WHERE merged_order_id = ? LIMIT 1', [childId]);
+      if (grandChild) throw new ConflictError(`Order ${child.order_code} đang là đơn chính của đơn khác — không gộp chuỗi nhiều cấp`);
+      assertMergeable(child, `Order ${child.order_code}`);
       if (child.address_line1 !== main.address_line1 || child.zipcode !== main.zipcode) {
         throw new BadRequestError(`Order ${child.order_code} khác địa chỉ giao — không thể gộp`);
       }
