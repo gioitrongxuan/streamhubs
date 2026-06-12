@@ -13,6 +13,7 @@ import { machinesRouter } from './modules/machines/machines.routes.js';
 import { shelvesRouter } from './modules/shelves/shelves.routes.js';
 import { ordersRouter } from './modules/orders/orders.routes.js';
 import { orderErrorsRouter } from './modules/orders/order-errors.routes.js';
+import { warehouseScanRouter } from './modules/orders/warehouse-scan.routes.js';
 import { orderExamplesRouter } from './modules/order-examples/order-examples.routes.js';
 import { inventoryRouter } from './modules/inventory/inventory.routes.js';
 import { threadsRouter } from './modules/threads/threads.routes.js';
@@ -44,6 +45,7 @@ export function createApp(): express.Express {
     shelvesRouter,
     ordersRouter,
     orderErrorsRouter,
+    warehouseScanRouter,
     orderExamplesRouter,
     inventoryRouter,
     threadsRouter,

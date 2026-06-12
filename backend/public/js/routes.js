@@ -7,6 +7,9 @@ import { renderStockOrders } from './pages/stock-orders.js';
 import { renderErrors } from './pages/errors.js';
 import { renderInventory } from './pages/inventory.js';
 import { renderScan } from './pages/scan.js';
+import { renderGenQr } from './pages/gen-qr.js';
+import { renderQc } from './pages/qc.js';
+import { renderScanTrack } from './pages/scan-track.js';
 import { renderThreads } from './pages/threads.js';
 import { renderReceiveOrders } from './pages/receive-orders.js';
 import { renderPayments } from './pages/payments.js';
@@ -27,6 +30,9 @@ export const routes = [
   { path: '/errors', render: renderErrors },
   { path: '/inventory', render: renderInventory },
   { path: '/scan', render: renderScan },
+  { path: '/gen-qrcode', render: renderGenQr },
+  { path: '/qc', render: renderQc },
+  { path: '/scan-track', render: renderScanTrack },
   { path: '/threads', render: renderThreads },
   { path: '/receive-orders', render: renderReceiveOrders },
   { path: '/payments/create', render: renderPaymentCreate },

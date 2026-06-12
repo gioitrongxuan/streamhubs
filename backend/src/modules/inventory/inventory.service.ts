@@ -140,9 +140,10 @@ export async function scanOut(input: z.infer<typeof scanOutSchema>, user: AuthUs
 export async function inventoryReport() {
   return query(
     pool,
-    `SELECT l.id, l.lot_number, l.color, l.size, l.quantity, l.remaining_qty, l.min_threshold,
+    `SELECT l.id, l.lot_number, l.color, l.size, l.quantity, l.remaining_qty, l.min_threshold, l.qr_prefix,
             pt.name AS product_type_name, s.short_name AS supplier_name,
-            (l.min_threshold IS NOT NULL AND l.remaining_qty <= l.min_threshold) AS is_low_stock
+            (l.min_threshold IS NOT NULL AND l.remaining_qty <= l.min_threshold) AS is_low_stock,
+            (SELECT COUNT(*) FROM inventory_items ii WHERE ii.lot_id = l.id) AS qrcode_count
      FROM inventory_lots l
      JOIN product_types pt ON pt.id = l.product_type_id
      JOIN suppliers s ON s.id = l.supplier_id
