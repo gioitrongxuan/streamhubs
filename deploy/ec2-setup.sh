@@ -17,6 +17,19 @@ fi
 DOCKER="docker"
 docker info >/dev/null 2>&1 || DOCKER="sudo docker"
 
+# 1b. Đảm bảo có swap ≥1G — máy RAM nhỏ (t2/t3.micro) build npm/tsc trong lúc
+#     MySQL đang chạy rất dễ cạn RAM và treo cả máy. Idempotent.
+if [ "$(awk '/SwapTotal/ {print $2}' /proc/meminfo)" -lt 1048576 ]; then
+  echo "→ Tạo swapfile 2G (chống treo khi build trên máy RAM nhỏ)..."
+  if [ ! -f /swapfile ]; then
+    sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048 status=none
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+  fi
+  sudo swapon /swapfile 2>/dev/null || true
+  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null
+fi
+
 # 2. Sinh .env lần đầu (mật khẩu DB + JWT secret ngẫu nhiên)
 if [ ! -f .env ]; then
   echo "→ Sinh .env với secret ngẫu nhiên..."
@@ -29,9 +42,11 @@ EOF
   chmod 600 .env
 fi
 
-# 3. Build + chạy app & MySQL (healthcheck đảm bảo DB sẵn sàng trước app)
+# 3. Build + chạy app & MySQL (healthcheck đảm bảo DB sẵn sàng trước app).
+#    Dọn image cũ sau mỗi lần build — layer dangling tích tụ sẽ làm đầy đĩa EBS nhỏ.
 echo "→ Build và khởi động dịch vụ..."
 $DOCKER compose -f docker-compose.ec2.yml up -d --build
+$DOCKER image prune -f >/dev/null
 
 # 4. Migration — luôn chạy (script tự bỏ qua phần đã áp dụng vì chỉ thêm file mới);
 #    seed chỉ chạy lần đầu (khi chưa có bảng roles có dữ liệu)
