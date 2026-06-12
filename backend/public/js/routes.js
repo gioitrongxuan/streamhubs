@@ -1,5 +1,6 @@
 // Bảng route của SPA — thứ tự quan trọng: route tĩnh đặt trước route có :param.
 import { renderDashboard } from './pages/dashboard.js';
+import { renderGuide } from './pages/guide.js';
 import { renderOrders } from './pages/orders.js';
 import { renderOrderCreate } from './pages/order-create.js';
 import { renderOrderDetail } from './pages/order-detail.js';
@@ -23,6 +24,7 @@ import {
 
 export const routes = [
   { path: '/dashboard', render: renderDashboard },
+  { path: '/guide', render: renderGuide },
   { path: '/orders/create', render: renderOrderCreate },
   { path: '/orders/:id', render: renderOrderDetail },
   { path: '/orders', render: renderOrders },

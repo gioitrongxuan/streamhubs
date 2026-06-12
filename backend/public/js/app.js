@@ -11,6 +11,7 @@ export const state = { user: null };
 const MENU = [
   { group: 'Tổng quan' },
   { hash: '#/dashboard', label: 'Dashboard', icon: 'speedometer2' },
+  { hash: '#/guide', label: 'Hướng dẫn vận hành', icon: 'signpost-split' },
   { group: 'Đơn hàng' },
   { hash: '#/orders', label: 'Orders', icon: 'receipt', perm: 'orders.view' },
   { hash: '#/orders/create', label: 'Tạo order', icon: 'cart-plus', perm: 'orders.create' },
