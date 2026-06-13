@@ -16,11 +16,23 @@ cp .env.example .env
 docker compose up -d        # MySQL 8
 npm install
 npm run db:migrate          # tạo schema (database/migrations)
-npm run db:seed             # roles, admin, system configs (database/seeds)
+npm run db:seed             # roles, admin, system configs + dữ liệu mẫu (database/seeds)
 npm run dev                 # http://localhost:3000
 ```
 
 Đăng nhập mặc định: `admin@streamhub.co` / `Admin@123` (đổi ngay sau khi đăng nhập).
+
+### Dữ liệu mẫu để test (`002_sample_data.sql`)
+
+Seed kèm bộ dữ liệu giống thật phủ toàn bộ nghiệp vụ: 3 shop Etsy, 12 user đủ các role,
+5 loại sản phẩm + variants, 17 đơn ở đủ trạng thái vòng đời (kể cả redo, cancelled,
+external fulfill, đơn gộp), kho phôi/QR, chỉ thêu, nhận hàng từ xưởng, đề nghị thanh toán
+đủ trạng thái, auto label, activity logs. Chỉ chạy trên DB trống (không idempotent) —
+**không chạy trên production**.
+
+Tài khoản test (mật khẩu chung `Test@123`): `thuy.le@` (manager), `huong.nguyen@` (designer senior),
+`minh.pham@`, `lan.vu@` (designer), `tuan.tran@`, `hoa.dang@` (warehouse), `cuong.do@`, `nam.bui@`
+(production), `mai.hoang@` (finishing), `ngoc.ly@` (finance) — đều thuộc domain `streamhub.co`.
 
 ```bash
 npm test          # unit test (state machine, RBAC, order code)
