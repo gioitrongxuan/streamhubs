@@ -43,6 +43,12 @@ export const ORDER_TRANSITIONS = {
   cancelled: [],
 };
 
+// Các trạng thái thuộc giai đoạn sản xuất — filter màn Order xưởng
+export const PRODUCTION_STATUSES = ['in_production', 'producing', 'redo', 'fixing', 'factory_return', 'produced'];
+
+// Đơn đã bàn giao carrier hoặc kết thúc — không hủy/gộp được nữa (đồng bộ NON_CANCELLABLE backend)
+export const NON_CANCELLABLE_STATUSES = ['out_stock', 'shipped', 'in_transit', 'complete', 'cancelled'];
+
 export const ITEM_STATUS = {
   pending:      { label: 'Chờ SX',        bg: '#eef2f6', color: '#475467' },
   in_progress:  { label: 'Đang thêu',     bg: '#dbeafe', color: '#1d4ed8' },

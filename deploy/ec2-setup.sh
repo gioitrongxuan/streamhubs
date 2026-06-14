@@ -48,26 +48,28 @@ echo "→ Build và khởi động dịch vụ..."
 $DOCKER compose -f docker-compose.ec2.yml up -d --build
 $DOCKER image prune -f >/dev/null
 
-# 4. Migration — luôn chạy (script tự bỏ qua phần đã áp dụng vì chỉ thêm file mới);
-#    seed chỉ chạy lần đầu (khi chưa có bảng roles có dữ liệu)
+# 4. Migration — luôn chạy: run-sql.mjs ghi file đã áp dụng vào bảng
+#    schema_migrations nên chạy lại chỉ áp dụng file mới.
 echo "→ Chờ MySQL sẵn sàng..."
 for _ in $(seq 1 30); do
   $DOCKER compose -f docker-compose.ec2.yml exec -T mysql mysqladmin ping -ustreamhub -p"$(grep '^DB_PASSWORD=' .env | cut -d= -f2)" --silent 2>/dev/null && break
   sleep 3
 done
 
-HAS_DATA=$($DOCKER compose -f docker-compose.ec2.yml exec -T mysql \
-  mysql -ustreamhub -p"$(grep '^DB_PASSWORD=' .env | cut -d= -f2)" streamhub \
-  -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='streamhub' AND table_name='roles'" 2>/dev/null || echo 0)
+MYSQL_EXEC="$DOCKER compose -f docker-compose.ec2.yml exec -T mysql mysql -ustreamhub -p$(grep '^DB_PASSWORD=' .env | cut -d= -f2) streamhub -N -e"
+HAS_SCHEMA=$($MYSQL_EXEC "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='streamhub' AND table_name='roles'" 2>/dev/null || echo 0)
+HAS_TRACKING=$($MYSQL_EXEC "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='streamhub' AND table_name='schema_migrations'" 2>/dev/null || echo 0)
 
-if [ "$HAS_DATA" = "0" ]; then
-  echo "→ Lần đầu: chạy migration + seed..."
-  $DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/migrations
-  $DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/seeds
-else
-  echo "→ DB đã có schema — bỏ qua migrate/seed (chạy tay nếu có migration mới:"
-  echo "   docker compose -f docker-compose.ec2.yml exec app node scripts/run-sql.mjs database/migrations)"
+if [ "$HAS_SCHEMA" != "0" ] && [ "$HAS_TRACKING" = "0" ]; then
+  # DB dựng từ phiên bản cũ (chưa có tracking): đánh dấu file hiện có là đã chạy
+  echo "→ Baseline schema_migrations cho DB có sẵn..."
+  $DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/migrations --baseline
+  $DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/seeds --baseline
 fi
+
+echo "→ Chạy migration + seed (chỉ áp dụng file mới)..."
+$DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/migrations
+$DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/seeds
 
 echo ""
 echo "✅ Hoàn tất. Kiểm tra:"

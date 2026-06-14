@@ -2,7 +2,7 @@ import { get, post, patch } from '../api.js';
 import {
   esc, fmtMoney, fmtDate, fmtDateTime, badge, spinner, openModal, toast, tryDo, confirmDialog,
 } from '../ui.js';
-import { ORDER_STATUS, ORDER_TRANSITIONS, ITEM_STATUS, ERROR_AT } from '../constants.js';
+import { ORDER_STATUS, ORDER_TRANSITIONS, ITEM_STATUS, ERROR_AT, NON_CANCELLABLE_STATUSES } from '../constants.js';
 import { state } from '../app.js';
 import { hasPerm } from '../perm.js';
 
@@ -13,6 +13,7 @@ const STATUS_PERM = {
   redo: 'warehouse.production_update', fixing: 'warehouse.production_update',
   factory_return: 'warehouse.production_update', in_finishing: 'warehouse.receive_order',
   qc_passed: 'warehouse.qc_scan', out_stock: 'warehouse.inventory_out', shipped: 'warehouse.scan_track',
+  in_transit: 'warehouse.scan_track', complete: 'warehouse.scan_track',
 };
 
 export async function renderOrderDetail(root, { id }) {
@@ -24,8 +25,7 @@ export async function renderOrderDetail(root, { id }) {
   const nextStatuses = (ORDER_TRANSITIONS[order.status] ?? []).filter(
     (s) => hasPerm(perms, STATUS_PERM[s] ?? 'orders.edit'),
   );
-  const canCancel = hasPerm(perms, 'orders.cancel') &&
-    !['out_stock', 'shipped', 'in_transit', 'complete', 'cancelled'].includes(order.status);
+  const canCancel = hasPerm(perms, 'orders.cancel') && !NON_CANCELLABLE_STATUSES.includes(order.status);
 
   const infoRow = (k, v) => `<div class="info-row"><div class="k">${k}</div><div>${v}</div></div>`;
 

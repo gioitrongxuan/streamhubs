@@ -2,11 +2,9 @@
 // gắn máy/operator, bắt đầu/kết thúc thêu, ghi nhận lỗi trên từng order_item.
 import { get, post, patch } from '../api.js';
 import { esc, fmtDate, badge, spinner, openModal, options, toast, tryDo, paginationHtml, bindPagination } from '../ui.js';
-import { ORDER_STATUS, ITEM_STATUS, ERROR_AT } from '../constants.js';
+import { ORDER_STATUS, ITEM_STATUS, ERROR_AT, PRODUCTION_STATUSES } from '../constants.js';
 import { state } from '../app.js';
 import { hasPerm } from '../perm.js';
-
-const PRODUCTION_STATUSES = 'in_production,producing,redo,fixing,factory_return,produced';
 
 export async function renderStockOrders(root) {
   root.innerHTML = spinner();
@@ -30,15 +28,14 @@ export async function renderStockOrders(root) {
   const load = async () => {
     const listEl = root.querySelector('#stock-list');
     listEl.innerHTML = spinner();
-    const params = new URLSearchParams({ status: PRODUCTION_STATUSES, page: filters.page, per_page: 10 });
+    const params = new URLSearchParams({
+      status: PRODUCTION_STATUSES.join(','), page: filters.page, per_page: 10, with_items: 1,
+    });
     if (filters.q) params.set('q', filters.q);
     if (filters.urgent) params.set('label', 'lam_gap');
     const { data, meta } = await get(`/orders?${params}`);
 
-    const blocks = await Promise.all(data.map(async (o) => {
-      const detail = await get(`/orders/${o.id}`);
-      return orderBlock(detail);
-    }));
+    const blocks = data.map(orderBlock);
     listEl.innerHTML = `${blocks.join('') || '<div class="sh-card text-center text-muted py-4">Không có lệnh sản xuất</div>'}
       ${paginationHtml(meta)}`;
     bindPagination(listEl, (page) => { filters.page = page; load(); });

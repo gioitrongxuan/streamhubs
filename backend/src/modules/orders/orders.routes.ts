@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { pool, query, queryOne, execute, withTransaction } from '../../db/pool.js';
-import { ForbiddenError, NotFoundError } from '../../core/http-error.js';
+import { NotFoundError } from '../../core/http-error.js';
 import { paginated } from '../../core/pagination.js';
 import { resolvePermission } from '../../core/rbac.js';
 import { buildSet } from '../../core/sql.js';
 import { authenticate, currentUser } from '../../middlewares/auth.js';
-import { authorize } from '../../middlewares/authorize.js';
+import { assertOwnership, authorize } from '../../middlewares/authorize.js';
 import { logActivity } from '../activity-logs/activity-log.service.js';
 import type { OrderStatus } from './order-status.js';
 import { listOrders, loadOrderDetail, findOrderById } from './orders.repository.js';
@@ -31,6 +31,8 @@ const STATUS_PERMISSION: Partial<Record<OrderStatus, string>> = {
   qc_passed: 'warehouse.qc_scan',
   out_stock: 'warehouse.inventory_out',
   shipped: 'warehouse.scan_track',
+  in_transit: 'warehouse.scan_track',
+  complete: 'warehouse.scan_track',
   cancelled: 'orders.cancel',
 };
 
@@ -73,9 +75,7 @@ ordersRouter.patch('/orders/:id', authorize('orders.edit'), async (req, res) => 
   if (!order) throw new NotFoundError('Không tìm thấy order');
 
   // Quyền edit = "own": designer chỉ sửa order mình phụ trách
-  if (resolvePermission(user.permissions, 'orders.edit') === 'own' && order.designer_id !== user.id) {
-    throw new ForbiddenError('Chỉ được sửa order do bạn phụ trách');
-  }
+  assertOwnership(user, 'orders.edit', order.designer_id);
 
   const { clause, params } = buildSet({
     ...input,
@@ -92,11 +92,13 @@ ordersRouter.patch('/orders/:id', authorize('orders.edit'), async (req, res) => 
 ordersRouter.post('/orders/:id/status', async (req, res) => {
   const { status, note } = changeStatusSchema.parse(req.body);
   const user = currentUser(req);
+  const order = await findOrderById(pool, Number(req.params.id));
+  if (!order) throw new NotFoundError('Không tìm thấy order');
+
   const permissionKey = STATUS_PERMISSION[status] ?? 'orders.edit';
-  if (resolvePermission(user.permissions, permissionKey) === false) {
-    throw new ForbiddenError(`Thiếu quyền: ${permissionKey}`);
-  }
-  await changeOrderStatus(Number(req.params.id), status, user, note);
+  // Quyền "own" chỉ được thao tác trên order mình phụ trách
+  assertOwnership(user, permissionKey, order.designer_id);
+  await changeOrderStatus(order.id, status, user, note);
   res.json({ ok: true });
 });
 
@@ -108,7 +110,9 @@ ordersRouter.post('/orders/:id/cancel', authorize('orders.cancel'), async (req, 
 
 ordersRouter.post('/orders/:id/merge', authorize('orders.edit'), async (req, res) => {
   const input = mergeOrdersSchema.parse(req.body);
-  await mergeOrders(Number(req.params.id), input, currentUser(req));
+  const user = currentUser(req);
+  const ownOnly = resolvePermission(user.permissions, 'orders.edit') === 'own';
+  await mergeOrders(Number(req.params.id), input, user, ownOnly);
   res.json({ ok: true });
 });
 
@@ -119,6 +123,7 @@ ordersRouter.post('/orders/:id/packages', authorize('orders.edit'), async (req, 
   const input = packageSchema.parse(req.body);
   const order = await findOrderById(pool, orderId);
   if (!order) throw new NotFoundError('Không tìm thấy order');
+  assertOwnership(currentUser(req), 'orders.edit', order.designer_id);
 
   const result = await execute(
     pool,
@@ -130,11 +135,14 @@ ordersRouter.post('/orders/:id/packages', authorize('orders.edit'), async (req, 
 
 ordersRouter.patch('/orders/:id/packages/:packageId', authorize('orders.edit'), async (req, res) => {
   const input = packageSchema.partial().parse(req.body);
-  const pkg = await queryOne(pool, 'SELECT id FROM order_packages WHERE id = ? AND order_id = ?', [
-    Number(req.params.packageId),
-    Number(req.params.id),
-  ]);
+  const pkg = await queryOne<{ id: number; designer_id: number | null }>(
+    pool,
+    `SELECT op.id, o.designer_id FROM order_packages op
+     JOIN orders o ON o.id = op.order_id WHERE op.id = ? AND op.order_id = ?`,
+    [Number(req.params.packageId), Number(req.params.id)],
+  );
   if (!pkg) throw new NotFoundError('Không tìm thấy kiện hàng');
+  assertOwnership(currentUser(req), 'orders.edit', pkg.designer_id);
 
   const { clause, params } = buildSet(input);
   if (clause) await execute(pool, `UPDATE order_packages SET ${clause} WHERE id = ?`, [...params, Number(req.params.packageId)]);

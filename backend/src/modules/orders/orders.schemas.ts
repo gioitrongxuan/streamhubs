@@ -60,6 +60,7 @@ export const listOrdersSchema = paginationSchema.extend({
   q: z.string().max(100).optional(),      // order_code / etsy_order_id / receiver_name
   date_from: z.string().date().optional(),
   date_to: z.string().date().optional(),
+  with_items: z.coerce.number().int().min(0).max(1).default(0), // 1 = kèm order_items (Order xưởng)
 });
 
 export const changeStatusSchema = z.object({

@@ -17,7 +17,12 @@ export const env = {
     database: process.env.DB_NAME ?? 'streamhub',
   },
   jwt: {
-    secret: process.env.NODE_ENV === 'production' ? required('JWT_SECRET') : (process.env.JWT_SECRET ?? 'dev-secret'),
+    // Fallback secret CHỈ khi khai báo rõ là môi trường dev/test — NODE_ENV không set
+    // (hoặc set production) mà thiếu JWT_SECRET thì fail ngay lúc khởi động,
+    // tránh chạy nhầm secret mặc định ngoài production (token bị forge được).
+    secret:
+      process.env.JWT_SECRET ??
+      (['development', 'test'].includes(process.env.NODE_ENV ?? '') ? 'dev-secret' : required('JWT_SECRET')),
     expiresIn: process.env.JWT_EXPIRES_IN ?? '12h',
   },
 } as const;

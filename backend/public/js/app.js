@@ -1,6 +1,6 @@
 // Bootstrap ứng dụng: shell (topbar + sidebar), hash router, menu theo quyền RBAC.
-import { get, getToken } from './api.js';
-import { esc } from './ui.js';
+import { get, post, getToken } from './api.js';
+import { esc, openModal, toast, tryDo } from './ui.js';
 import { hasPerm } from './perm.js';
 import { renderLogin } from './pages/login.js';
 import { routes } from './routes.js';
@@ -85,6 +85,7 @@ function renderShell() {
       <div class="sh-logo">stream<span>hub</span><small class="text-muted">.co</small></div>
       <div class="ms-auto d-flex align-items-center gap-3">
         <span class="text-muted-sm">${esc(state.user.name)} · ${esc(state.user.roleName)}</span>
+        <button class="btn btn-sm btn-light" id="btn-change-password" title="Đổi mật khẩu"><i class="bi bi-key"></i></button>
         <button class="btn btn-sm btn-light" id="btn-logout">Đăng xuất</button>
       </div>
     </div>
@@ -113,6 +114,33 @@ function renderShell() {
       return;
     }
     if (e.target.closest('a[data-menu]') && isMobile()) layout.classList.remove('nav-open');
+  });
+
+  document.getElementById('btn-change-password').onclick = () => openModal({
+    title: 'Đổi mật khẩu',
+    body: `
+      <div class="mb-2"><label class="form-label">Mật khẩu hiện tại</label>
+        <input type="password" class="form-control" id="cp-current" autocomplete="current-password"></div>
+      <div class="mb-2"><label class="form-label">Mật khẩu mới (tối thiểu 8 ký tự)</label>
+        <input type="password" class="form-control" id="cp-new" autocomplete="new-password"></div>
+      <div><label class="form-label">Nhập lại mật khẩu mới</label>
+        <input type="password" class="form-control" id="cp-confirm" autocomplete="new-password"></div>`,
+    footer: '<button class="btn btn-light" data-close>Hủy</button><button class="btn btn-primary" data-ok>Đổi mật khẩu</button>',
+    onMount: (el, close) => {
+      el.querySelector('[data-ok]').onclick = () => tryDo(async () => {
+        const newPassword = el.querySelector('#cp-new').value;
+        if (newPassword !== el.querySelector('#cp-confirm').value) {
+          toast('Mật khẩu nhập lại không khớp', 'error');
+          return;
+        }
+        await post('/auth/change-password', {
+          current_password: el.querySelector('#cp-current').value,
+          new_password: newPassword,
+        });
+        toast('Đã đổi mật khẩu');
+        close();
+      });
+    },
   });
 
   document.getElementById('btn-logout').onclick = () => {

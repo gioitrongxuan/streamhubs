@@ -19,12 +19,12 @@ export function resolvePermission(permissions: Permissions, key: string): Permis
 
   let node: unknown = permissions;
   for (const part of key.split('.')) {
+    // Cấp quyền cả module bằng `"payment": true` (hoặc 'own') — áp cho mọi action bên trong
+    if (node === true || node === 'own') return node;
     if (node === null || typeof node !== 'object') return false;
     node = (node as Record<string, unknown>)[part];
   }
   if (node === true || node === 'own') return node;
-  // Cho phép cấp quyền cả module bằng `"payment": true`
-  if (typeof node === 'object' && node !== null) return false;
   return false;
 }
 

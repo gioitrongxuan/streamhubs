@@ -74,6 +74,11 @@ usersRouter.patch('/users/:id', async (req, res) => {
   const user = await queryOne(pool, 'SELECT id FROM users WHERE id = ?', [id]);
   if (!user) throw new NotFoundError('Không tìm thấy người dùng');
 
+  if (input.email) {
+    const existing = await queryOne(pool, 'SELECT id FROM users WHERE email = ? AND id != ?', [input.email, id]);
+    if (existing) throw new ConflictError('Email đã được sử dụng');
+  }
+
   const { password, ...columns } = input;
   const { clause, params } = buildSet({
     ...columns,
