@@ -9,17 +9,23 @@ import type {
 
 /**
  * Sinh serial_number dạng YYYYMM + seq 4 chữ số (VD: 2026060023).
- * Lock theo prefix tháng để hai phiếu tạo đồng thời không trùng số.
+ * Dùng bảng sequences với INSERT ... ON DUPLICATE KEY UPDATE để tăng counter
+ * một cách atomic — tránh race condition khi nhiều request đến cùng lúc.
  */
 async function nextSerialNumber(conn: Queryable, at: Date = new Date()): Promise<string> {
   const prefix = `${at.getFullYear()}${String(at.getMonth() + 1).padStart(2, '0')}`;
-  const row = await queryOne<{ max_serial: string | null }>(
+  const key = `payment_request_${prefix}`;
+  await execute(
     conn,
-    'SELECT MAX(serial_number) AS max_serial FROM payment_requests WHERE serial_number LIKE ? FOR UPDATE',
-    [`${prefix}%`],
+    'INSERT INTO sequences (name, current_val) VALUES (?, 1) ON DUPLICATE KEY UPDATE current_val = current_val + 1',
+    [key],
   );
-  const lastSeq = row?.max_serial ? Number(row.max_serial.slice(prefix.length)) : 0;
-  return `${prefix}${String(lastSeq + 1).padStart(4, '0')}`;
+  const row = await queryOne<{ current_val: number }>(
+    conn,
+    'SELECT current_val FROM sequences WHERE name = ?',
+    [key],
+  );
+  return `${prefix}${String(row!.current_val).padStart(4, '0')}`;
 }
 
 export async function createPaymentRequest(
