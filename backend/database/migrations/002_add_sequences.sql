@@ -2,7 +2,7 @@
 -- INSERT ... ON DUPLICATE KEY UPDATE giữ row-lock, ngăn hai transaction
 -- đọc cùng giá trị rồi cùng tính ra serial trùng nhau.
 
-CREATE TABLE sequences (
+CREATE TABLE IF NOT EXISTS sequences (
   name        VARCHAR(50) PRIMARY KEY,
   current_val INT UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
