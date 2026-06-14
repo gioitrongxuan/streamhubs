@@ -21,6 +21,7 @@ export async function openPaymentDetail(id, onChange) {
     const myApproval = request.approvers.find((a) => a.user_id === state.user.id);
     const canApprove = hasPerm(perms, 'payment.approve') && myApproval && myApproval.status === 'pending' && request.status === 'pending';
     const canMarkPaid = hasPerm(perms, 'payment.mark_paid') && ['accepted', 'partial'].includes(request.status);
+    const canEdit = hasPerm(perms, 'payment.create') && request.status === 'pending';
 
     const infoRow = (k, v) => `<div class="info-row"><div class="k">${k}</div><div>${v}</div></div>`;
     const approverBadge = { pending: ['Chờ duyệt', '#fef0c7', '#b54708'], accepted: ['Đã xác nhận', '#d1fadf', '#067647'], reject: ['Từ chối', '#fee4e2', '#b42318'] };
@@ -30,7 +31,10 @@ export async function openPaymentDetail(id, onChange) {
       body: `<div class="row g-3">
         <div class="col-lg-8">
           <div class="sh-card mb-3">
-            <div class="section-title">Thông tin cơ bản</div>
+            <div class="section-title d-flex justify-content-between align-items-center">
+              <span>Thông tin cơ bản</span>
+              ${canEdit ? '<button class="btn btn-sm btn-outline-primary" data-edit>✎ Sửa</button>' : ''}
+            </div>
             ${infoRow('Ngày tạo', fmtDate(request.created_at))}
             ${infoRow('Hạn thanh toán', fmtDate(request.due_date))}
             ${infoRow('Người tạo', esc(request.created_by_name))}
@@ -105,6 +109,11 @@ export async function openPaymentDetail(id, onChange) {
       </div>`,
       onMount: (el, close) => {
         const refresh = () => { close(); onChange?.(); openPaymentDetail(id, onChange); };
+
+        el.querySelector('[data-edit]')?.addEventListener('click', () => {
+          close();
+          location.hash = `#/payments/${id}/edit`;
+        });
 
         el.querySelector('[data-approve]')?.addEventListener('click', () =>
           tryDo(async () => {

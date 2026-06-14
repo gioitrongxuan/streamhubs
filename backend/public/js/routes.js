@@ -30,6 +30,7 @@ export const routes = [
   { path: '/threads', render: renderThreads },
   { path: '/receive-orders', render: renderReceiveOrders },
   { path: '/payments/create', render: renderPaymentCreate },
+  { path: '/payments/:id/edit', render: renderPaymentCreate },
   { path: '/payments', render: renderPayments },
   { path: '/auto-labels', render: renderAutoLabels },
   { path: '/system-configs', render: renderSystemConfigs },

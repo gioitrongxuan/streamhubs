@@ -3,7 +3,9 @@ import { execute, queryOne, query, withTransaction, type Queryable } from '../..
 import { ConflictError, ForbiddenError, NotFoundError } from '../../core/http-error.js';
 import type { AuthUser } from '../../middlewares/auth.js';
 import { logActivity } from '../activity-logs/activity-log.service.js';
-import type { approvalSchema, createPaymentRequestSchema, markPaidSchema } from './payment-requests.schemas.js';
+import type {
+  approvalSchema, createPaymentRequestSchema, markPaidSchema, updatePaymentRequestSchema,
+} from './payment-requests.schemas.js';
 
 /**
  * Sinh serial_number dạng YYYYMM + seq 4 chữ số (VD: 2026060023).
@@ -58,6 +60,64 @@ export async function createPaymentRequest(
     await logActivity(conn, 'payment_request', requestId, user.id,
       `${user.name}: Tạo mới yêu cầu thanh toán ${serialNumber}`);
     return { id: requestId, serial_number: serialNumber };
+  });
+}
+
+/**
+ * Sửa phiếu — chỉ cho phép khi còn ở trạng thái "pending" (chưa ai duyệt/thanh toán).
+ * Ghi đè toàn bộ khoản chi và danh sách người duyệt, tính lại tổng tiền; giữ nguyên serial_number.
+ */
+export async function updatePaymentRequest(
+  requestId: number,
+  input: z.infer<typeof updatePaymentRequestSchema>,
+  user: AuthUser,
+): Promise<{ id: number; serial_number: string }> {
+  return withTransaction(async (conn) => {
+    const request = await queryOne<{ id: number; status: string; serial_number: string }>(
+      conn,
+      'SELECT id, status, serial_number FROM payment_requests WHERE id = ? FOR UPDATE',
+      [requestId],
+    );
+    if (!request) throw new NotFoundError('Không tìm thấy đề nghị thanh toán');
+    if (request.status !== 'pending') {
+      throw new ConflictError(`Phiếu đang ở trạng thái "${request.status}" — chỉ sửa được phiếu đang chờ duyệt`);
+    }
+
+    const totalAmount = input.items.reduce((sum, item) => sum + item.qty * item.unit_price, 0);
+    await execute(
+      conn,
+      `UPDATE payment_requests SET supplier_id = ?, payment_group = ?, content = ?, total_amount = ?,
+                                   currency = ?, file_main = ?, due_date = ?
+       WHERE id = ?`,
+      [input.supplier_id ?? null, input.payment_group, input.content ?? null, totalAmount,
+       input.currency, input.file_main ?? null, input.due_date ?? null, requestId],
+    );
+
+    await execute(conn, 'DELETE FROM payment_request_items WHERE payment_request_id = ?', [requestId]);
+    for (const item of input.items) {
+      await execute(
+        conn,
+        `INSERT INTO payment_request_items (payment_request_id, description, qty, unit, unit_price, total,
+                                            reference_type, reference_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [requestId, item.description, item.qty, item.unit ?? null, item.unit_price,
+         item.qty * item.unit_price, item.reference_type ?? null, item.reference_id ?? null],
+      );
+    }
+
+    // Ghi đè người duyệt — phiếu đang pending nên mọi quyết định trước đó (nếu có) đều reset.
+    await execute(conn, 'DELETE FROM payment_request_approvers WHERE payment_request_id = ?', [requestId]);
+    for (const approverId of input.approver_ids) {
+      await execute(
+        conn,
+        'INSERT INTO payment_request_approvers (payment_request_id, user_id) VALUES (?, ?)',
+        [requestId, approverId],
+      );
+    }
+
+    await logActivity(conn, 'payment_request', requestId, user.id,
+      `${user.name}: Sửa đề nghị thanh toán ${request.serial_number}`);
+    return { id: requestId, serial_number: request.serial_number };
   });
 }
 

@@ -7,8 +7,11 @@ import { authenticate, currentUser } from '../../middlewares/auth.js';
 import { authorize } from '../../middlewares/authorize.js';
 import {
   approvalSchema, createPaymentRequestSchema, listPaymentRequestsSchema, markPaidSchema,
+  updatePaymentRequestSchema,
 } from './payment-requests.schemas.js';
-import { createPaymentRequest, loadPaymentRequestDetail, markPaid, recordApproval } from './payment-requests.service.js';
+import {
+  createPaymentRequest, loadPaymentRequestDetail, markPaid, recordApproval, updatePaymentRequest,
+} from './payment-requests.service.js';
 
 const fileSchema = z.object({ file_path: z.string().min(1).max(255) });
 
@@ -106,6 +109,12 @@ paymentRequestsRouter.post('/payment-requests', authorize('payment.create'), asy
   const input = createPaymentRequestSchema.parse(req.body);
   const result = await createPaymentRequest(input, currentUser(req));
   res.status(201).json(result);
+});
+
+paymentRequestsRouter.put('/payment-requests/:id', authorize('payment.create'), async (req, res) => {
+  const input = updatePaymentRequestSchema.parse(req.body);
+  const result = await updatePaymentRequest(Number(req.params.id), input, currentUser(req));
+  res.json(result);
 });
 
 paymentRequestsRouter.post('/payment-requests/:id/approval', authorize('payment.approve'), async (req, res) => {

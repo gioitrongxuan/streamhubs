@@ -25,6 +25,9 @@ export const createPaymentRequestSchema = z.object({
   approver_ids: z.array(z.number().int().positive()).min(1),
 });
 
+// Sửa phiếu dùng đúng bộ trường như khi tạo (serial_number/status không đổi).
+export const updatePaymentRequestSchema = createPaymentRequestSchema;
+
 export const listPaymentRequestsSchema = paginationSchema.extend({
   status: z.enum(['pending', 'accepted', 'partial', 'paid', 'rejected']).optional(),
   payment_group: z.enum(PAYMENT_GROUPS).optional(),
