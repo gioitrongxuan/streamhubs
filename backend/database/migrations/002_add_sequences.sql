@@ -11,8 +11,11 @@ CREATE TABLE IF NOT EXISTS sequences (
 -- để tránh reuse serial_number khi migration chạy trên DB đang có data.
 INSERT INTO sequences (name, current_val)
 SELECT
-  CONCAT('payment_request_', LEFT(serial_number, 6)) AS name,
-  MAX(CAST(SUBSTRING(serial_number, 7) AS UNSIGNED))  AS current_val
-FROM payment_requests
-GROUP BY LEFT(serial_number, 6)
+  CONCAT('payment_request_', prefix) AS name,
+  MAX(CAST(SUBSTRING(serial_number, 7) AS UNSIGNED)) AS current_val
+FROM (
+  SELECT serial_number, LEFT(serial_number, 6) AS prefix
+  FROM payment_requests
+) t
+GROUP BY prefix
 ON DUPLICATE KEY UPDATE current_val = VALUES(current_val);
