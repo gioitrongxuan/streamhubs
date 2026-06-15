@@ -7,6 +7,7 @@ export type EntityType =
   | 'inventory_lot'
   | 'inventory_in'
   | 'inventory_out'
+  | 'inventory_print'
   | 'thread_lot'
   | 'thread_in'
   | 'thread_out'

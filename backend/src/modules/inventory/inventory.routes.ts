@@ -4,8 +4,14 @@ import { NotFoundError } from '../../core/http-error.js';
 import { authenticate, currentUser } from '../../middlewares/auth.js';
 import { authorize } from '../../middlewares/authorize.js';
 import { logActivity } from '../activity-logs/activity-log.service.js';
-import { createLotSchema, generateQrSchema, scanInSchema, scanOutSchema } from './inventory.schemas.js';
-import { generateQrcodes, inventoryReport, scanIn, scanOut } from './inventory.service.js';
+import {
+  createLotSchema, generateQrSchema, importReportQuerySchema, logPrintSchema, pushPaymentSchema,
+  scanInSchema, scanOutSchema,
+} from './inventory.schemas.js';
+import {
+  generateQrcodes, importReport, inventoryReport, listPrintHistory, logPrint, pushReportToPayment,
+  scanIn, scanOut,
+} from './inventory.service.js';
 
 export const inventoryRouter = Router();
 inventoryRouter.use(authenticate);
@@ -49,13 +55,32 @@ inventoryRouter.post('/inventory/lots/:id/qrcodes', authorize('warehouse.gen_qrc
 });
 
 inventoryRouter.post('/inventory/in', authorize('warehouse.inventory_in'), async (req, res) => {
-  await scanIn(scanInSchema.parse(req.body), currentUser(req));
-  res.status(201).json({ ok: true });
+  const info = await scanIn(scanInSchema.parse(req.body), currentUser(req));
+  res.status(201).json(info);
 });
 
 inventoryRouter.post('/inventory/out', authorize('warehouse.inventory_out'), async (req, res) => {
   await scanOut(scanOutSchema.parse(req.body), currentUser(req));
   res.status(201).json({ ok: true });
+});
+
+// --- Báo cáo nhập + phiếu in + đẩy thanh toán --------------------------------
+
+inventoryRouter.get('/inventory/in/report', authorize('warehouse.inventory_view'), async (req, res) => {
+  const filters = importReportQuerySchema.parse(req.query);
+  res.json(await importReport(filters));
+});
+
+inventoryRouter.post('/inventory/print-history', authorize('warehouse.inventory_view'), async (req, res) => {
+  res.status(201).json(await logPrint(logPrintSchema.parse(req.body), currentUser(req)));
+});
+
+inventoryRouter.get('/inventory/print-history', authorize('warehouse.inventory_view'), async (_req, res) => {
+  res.json({ data: await listPrintHistory() });
+});
+
+inventoryRouter.post('/inventory/in/payment-request', authorize('payment.create'), async (req, res) => {
+  res.status(201).json(await pushReportToPayment(pushPaymentSchema.parse(req.body), currentUser(req)));
 });
 
 // --- Lịch sử ------------------------------------------------------------------

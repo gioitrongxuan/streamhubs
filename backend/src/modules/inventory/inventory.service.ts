@@ -3,7 +3,16 @@ import { execute, pool, query, queryOne, withTransaction } from '../../db/pool.j
 import { BadRequestError, ConflictError, NotFoundError } from '../../core/http-error.js';
 import type { AuthUser } from '../../middlewares/auth.js';
 import { logActivity } from '../activity-logs/activity-log.service.js';
-import type { generateQrSchema, scanInSchema, scanOutSchema } from './inventory.schemas.js';
+import { createPaymentRequest } from '../payment-requests/payment-requests.service.js';
+import type { createPaymentRequestSchema } from '../payment-requests/payment-requests.schemas.js';
+import type {
+  generateQrSchema,
+  importReportQuerySchema,
+  logPrintSchema,
+  pushPaymentSchema,
+  scanInSchema,
+  scanOutSchema,
+} from './inventory.schemas.js';
 
 interface InventoryItemRow {
   id: number;
@@ -11,6 +20,31 @@ interface InventoryItemRow {
   qrcode: string;
   shelf_id: number | null;
   status: 'created' | 'in_stock' | 'out' | 'return_error' | 'damaged';
+}
+
+/** Một dòng báo cáo nhập kho — gộp theo lô trong phạm vi ngày/lô đã lọc. */
+interface ImportReportRow {
+  lot_id: number;
+  lot_number: string;
+  color: string | null;
+  size: string | null;
+  unit_price_vnd: string | null;
+  product_type_name: string;
+  supplier_id: number;
+  supplier_name: string;
+  qty: number;
+  amount: string;
+}
+
+/** Thông tin lô trả về sau khi scan nhập — để client cộng dồn số lượng & tiền. */
+export interface ScanInResult {
+  qrcode: string;
+  lot_id: number;
+  lot_number: string;
+  color: string | null;
+  size: string | null;
+  product_type_name: string;
+  unit_price_vnd: string | null;
 }
 
 function today(): string {
@@ -58,8 +92,8 @@ export async function generateQrcodes(
  * Scan nhập kho 1 chiếc phôi. Atomic trong 1 transaction:
  * item → in_stock + gán kệ, lot.remaining_qty +1, shelf.current_count +1, ghi inventory_in.
  */
-export async function scanIn(input: z.infer<typeof scanInSchema>, user: AuthUser): Promise<void> {
-  await withTransaction(async (conn) => {
+export async function scanIn(input: z.infer<typeof scanInSchema>, user: AuthUser): Promise<ScanInResult> {
+  return withTransaction(async (conn) => {
     const item = await queryOne<InventoryItemRow>(
       conn,
       'SELECT * FROM inventory_items WHERE qrcode = ? FOR UPDATE',
@@ -89,6 +123,15 @@ export async function scanIn(input: z.infer<typeof scanInSchema>, user: AuthUser
       [item.id, input.shelf_id, input.date ?? today(), user.id, input.note ?? null],
     );
     await logActivity(conn, 'inventory_in', result.insertId, user.id, `${user.name}: Nhập kho phôi ${input.qrcode}`);
+
+    // Trả về thông tin lô + đơn giá để màn Nhập kho cộng dồn số lượng & thành tiền realtime.
+    const lot = await queryOne<Omit<ScanInResult, 'qrcode'>>(
+      conn,
+      `SELECT l.id AS lot_id, l.lot_number, l.color, l.size, l.unit_price_vnd, pt.name AS product_type_name
+       FROM inventory_lots l JOIN product_types pt ON pt.id = l.product_type_id WHERE l.id = ?`,
+      [item.lot_id],
+    );
+    return { qrcode: input.qrcode, ...lot! };
   });
 }
 
@@ -149,4 +192,120 @@ export async function inventoryReport() {
      JOIN suppliers s ON s.id = l.supplier_id
      ORDER BY is_low_stock DESC, l.id DESC`,
   );
+}
+
+/**
+ * Báo cáo nhập kho theo ngày và/hoặc theo lô: gộp các lượt scan nhập (inventory_in)
+ * theo lô, kèm số lượng và thành tiền = số lượng × đơn giá lô. Trả thêm tổng cộng.
+ */
+export async function importReport(
+  filters: z.infer<typeof importReportQuerySchema>,
+): Promise<{ rows: ImportReportRow[]; summary: { total_qty: number; total_amount: number } }> {
+  const date = filters.date ?? null;
+  const lotId = filters.lot_id ?? null;
+  const rows = await query<ImportReportRow>(
+    pool,
+    `SELECT l.id AS lot_id, l.lot_number, l.color, l.size, l.unit_price_vnd,
+            pt.name AS product_type_name, s.id AS supplier_id, s.short_name AS supplier_name,
+            COUNT(i.id) AS qty,
+            COUNT(i.id) * COALESCE(l.unit_price_vnd, 0) AS amount
+     FROM inventory_in i
+     JOIN inventory_items ii ON ii.id = i.inventory_item_id
+     JOIN inventory_lots l ON l.id = ii.lot_id
+     JOIN product_types pt ON pt.id = l.product_type_id
+     JOIN suppliers s ON s.id = l.supplier_id
+     WHERE (? IS NULL OR i.date = ?) AND (? IS NULL OR l.id = ?)
+     GROUP BY l.id, l.lot_number, l.color, l.size, l.unit_price_vnd, pt.name, s.id, s.short_name
+     ORDER BY l.lot_number`,
+    [date, date, lotId, lotId],
+  );
+  const summary = rows.reduce(
+    (acc, r) => ({ total_qty: acc.total_qty + Number(r.qty), total_amount: acc.total_amount + Number(r.amount) }),
+    { total_qty: 0, total_amount: 0 },
+  );
+  return { rows, summary };
+}
+
+/** Ghi lịch sử một lần in báo cáo nhập kho. Tổng được tính lại từ DB, không tin số client gửi. */
+export async function logPrint(
+  input: z.infer<typeof logPrintSchema>,
+  user: AuthUser,
+): Promise<{ id: number; total_qty: number; total_amount: number }> {
+  const { summary } = await importReport(input);
+  const reportType: 'day' | 'lot' = input.lot_id && !input.date ? 'lot' : 'day';
+  const result = await execute(
+    pool,
+    `INSERT INTO inventory_print_history (report_type, report_date, lot_id, total_qty, total_amount, printed_by)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [reportType, input.date ?? null, input.lot_id ?? null, summary.total_qty, summary.total_amount, user.id],
+  );
+  await logActivity(pool, 'inventory_print', result.insertId, user.id,
+    `${user.name}: In báo cáo nhập kho (${reportType === 'lot' ? 'theo lô' : 'theo ngày'}) — ${summary.total_qty} phôi`);
+  return { id: result.insertId, ...summary };
+}
+
+/** Danh sách lịch sử phiếu in báo cáo nhập kho gần đây. */
+export async function listPrintHistory() {
+  return query(
+    pool,
+    `SELECT ph.id, ph.report_type, ph.report_date, ph.lot_id, l.lot_number,
+            ph.total_qty, ph.total_amount, ph.payment_request_id, pr.serial_number,
+            u.name AS printed_by_name, ph.created_at
+     FROM inventory_print_history ph
+     LEFT JOIN inventory_lots l ON l.id = ph.lot_id
+     LEFT JOIN payment_requests pr ON pr.id = ph.payment_request_id
+     JOIN users u ON u.id = ph.printed_by
+     ORDER BY ph.id DESC LIMIT 50`,
+  );
+}
+
+/**
+ * Đẩy báo cáo nhập kho (theo ngày/lô) sang đề nghị thanh toán: mỗi lô = 1 khoản chi,
+ * tham chiếu reference_type='inventory_lot'. Nếu kèm print_history_id thì liên kết phiếu in đó.
+ */
+export async function pushReportToPayment(
+  input: z.infer<typeof pushPaymentSchema>,
+  user: AuthUser,
+): Promise<{ id: number; serial_number: string }> {
+  const { rows } = await importReport(input);
+  const [first] = rows;
+  if (!first) throw new BadRequestError('Không có dữ liệu nhập kho trong phạm vi đã chọn');
+
+  const supplierIds = new Set(rows.map((r) => r.supplier_id));
+  const supplierId = input.supplier_id ?? (supplierIds.size === 1 ? first.supplier_id : null);
+
+  const items: z.infer<typeof createPaymentRequestSchema>['items'] = rows.map((r) => {
+    const variant = [r.color, r.size].filter(Boolean).join(' / ');
+    return {
+      description: `Nhập kho lô ${r.lot_number}${variant ? ` (${variant})` : ''} — ${r.product_type_name}`,
+      qty: Number(r.qty),
+      unit: 'cái',
+      unit_price: Number(r.unit_price_vnd ?? 0),
+      reference_type: 'inventory_lot',
+      reference_id: r.lot_id,
+    };
+  });
+
+  const scopeLabel = input.date
+    ? `ngày ${input.date.split('-').reverse().join('-')}`
+    : `lô ${first.lot_number}`;
+
+  const created = await createPaymentRequest(
+    {
+      supplier_id: supplierId,
+      payment_group: 'material',
+      content: `Đề nghị thanh toán phôi nhập kho (${scopeLabel})`,
+      currency: 'VND',
+      items,
+      approver_ids: input.approver_ids,
+    },
+    user,
+  );
+
+  if (input.print_history_id) {
+    await execute(pool, 'UPDATE inventory_print_history SET payment_request_id = ? WHERE id = ?', [
+      created.id, input.print_history_id,
+    ]);
+  }
+  return created;
 }

@@ -18,6 +18,7 @@ const ENTITY_VIEW_PERMISSION: Record<EntityType, string> = {
   inventory_lot: 'warehouse.inventory_view',
   inventory_in: 'warehouse.inventory_view',
   inventory_out: 'warehouse.inventory_view',
+  inventory_print: 'warehouse.inventory_view',
   thread_lot: 'warehouse.thread',
   thread_in: 'warehouse.thread',
   thread_out: 'warehouse.thread',
