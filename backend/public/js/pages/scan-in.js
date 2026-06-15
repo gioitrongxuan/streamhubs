@@ -1,6 +1,8 @@
-// Nhập kho phôi bằng QR (tách riêng khỏi Xuất kho — issue #12).
-// - Scan tem phôi → nhận diện lô + đơn giá, cộng dồn số lượng & thành tiền realtime.
-// - Báo cáo nhập theo ngày / theo lô, in phiếu (lưu lịch sử in) và đẩy sang đề nghị thanh toán.
+// Nhập kho (tách segment theo issue #12):
+//   1) Nhập kho phôi        — scan tem phôi → nhận diện lô + đơn giá, cộng dồn SL & tiền realtime
+//   2) Nhập kho sản phẩm khác — (chờ backend) khung placeholder
+//   3) Lịch sử nhập kho      — báo cáo theo ngày / lô, in phiếu (lưu lịch sử), đẩy đề nghị thanh toán
+//   4) Lịch sử in phiếu      — danh sách phiếu in báo cáo nhập
 import { get, post } from '../api.js';
 import { esc, fmtMoney, fmtDate, fmtDateTime, spinner, options, toast, tryDo, openModal } from '../ui.js';
 import { state } from '../app.js';
@@ -20,32 +22,45 @@ export async function renderScanIn(root) {
   let scope = { date: todayStr(), lot_id: null };
   let lastPrint = null;
 
-  root.innerHTML = `
-    <h5 class="mb-3">Nhập kho phôi</h5>
-    <div class="row g-3 mb-3">
-      <div class="col-md-5 no-print"><div class="sh-card">
-        <div class="section-title">Nhập kho (scan QR)</div>
+  const TABS = [
+    ['phoi', 'Nhập kho phôi'],
+    ['other', 'Nhập kho sản phẩm khác'],
+    ['history', 'Lịch sử nhập kho'],
+    ['prints', 'Lịch sử in phiếu'],
+  ];
+
+  const panelPhoi = `
+    <div class="row g-3">
+      <div class="col-md-5"><div class="sh-card">
+        <div class="section-title">Scan QR phôi</div>
         <form id="form-in">
           <div class="mb-2"><label class="form-label">Kệ đích *</label>
             <select class="form-select" name="shelf_id" required>${options(shelves.data, {
               label: 'name', empty: '— Chọn kệ —',
             })}</select></div>
           <div class="mb-2"><label class="form-label">Mã QR phôi *</label>
-            <input class="form-control" name="qrcode" placeholder="CH-HDI-0042-0001" autofocus required
-              autocomplete="off"></div>
+            <input class="form-control" name="qrcode" placeholder="CH-HDI-0042-0001" autocomplete="off"></div>
           <button class="btn btn-primary w-100">⤵ Nhập kho</button>
         </form>
       </div></div>
-      <div class="col-md-7 no-print"><div class="sh-card p-0">
+      <div class="col-md-7"><div class="sh-card p-0">
         <div class="p-3 pb-2 d-flex justify-content-between align-items-center">
           <span class="section-title m-0">Phiên scan hiện tại</span>
           <button class="btn btn-sm btn-light" id="btn-clear-session">Xóa danh sách</button>
         </div>
         <div id="session-box"></div>
       </div></div>
-    </div>
+    </div>`;
 
-    <div class="sh-card mb-3">
+  const panelOther = `
+    <div class="sh-card text-center text-muted py-5">
+      <div style="font-size:32px">📦</div>
+      <p class="mb-1 mt-2">Nhập kho cho các sản phẩm khác (không phải phôi)</p>
+      <p class="text-muted-sm m-0">Tính năng đang được phát triển — sẽ bổ sung loại hàng và quy trình scan riêng.</p>
+    </div>`;
+
+  const panelHistory = `
+    <div class="sh-card">
       <div class="filters-bar d-flex flex-wrap align-items-end gap-2 mb-3 no-print">
         <div><label class="form-label">Ngày nhập</label>
           <input type="date" class="form-control" id="rp-date" value="${todayStr()}"></div>
@@ -61,14 +76,33 @@ export async function renderScanIn(root) {
         </div>
       </div>
       <div id="report-result"><div class="text-muted text-center py-4 no-print">Chọn ngày / lô rồi bấm “Xem báo cáo”.</div></div>
-    </div>
+    </div>`;
 
-    <div class="sh-card p-0 no-print">
-      <div class="p-3 pb-0 section-title">Lịch sử phiếu in gần đây</div>
+  const panelPrints = `
+    <div class="sh-card p-0">
+      <div class="p-3 pb-0 section-title">Phiếu in báo cáo nhập gần đây</div>
       <div id="print-history">${spinner()}</div>
     </div>`;
 
-  // --- Phiên scan ------------------------------------------------------------
+  const panels = { phoi: panelPhoi, other: panelOther, history: panelHistory, prints: panelPrints };
+
+  root.innerHTML = `
+    <h5 class="mb-3">Nhập kho</h5>
+    <div class="sh-tabs mb-3 no-print">${TABS.map(([id, label], i) =>
+      `<button type="button" class="btn btn-sm ${i === 0 ? 'btn-primary' : 'btn-light'}" data-tab="${id}">${esc(label)}</button>`).join('')}</div>
+    ${TABS.map(([id], i) => `<div data-tab-panel="${id}" ${i === 0 ? '' : 'hidden'}>${panels[id]}</div>`).join('')}
+    <style>.sh-tabs { display: flex; gap: 8px; flex-wrap: wrap; }</style>`;
+
+  root.querySelectorAll('[data-tab]').forEach((btn) => {
+    btn.onclick = () => {
+      root.querySelectorAll('[data-tab]').forEach((b) =>
+        b.classList.replace(b === btn ? 'btn-light' : 'btn-primary', b === btn ? 'btn-primary' : 'btn-light'));
+      root.querySelectorAll('[data-tab-panel]').forEach((p) => { p.hidden = p.dataset.tabPanel !== btn.dataset.tab; });
+      if (btn.dataset.tab === 'phoi') root.querySelector('#form-in [name=qrcode]')?.focus();
+    };
+  });
+
+  // --- Tab 1: Nhập kho phôi --------------------------------------------------
   const renderSession = () => {
     const total = session.reduce((s, r) => s + Number(r.unit_price ?? 0), 0);
     root.querySelector('#session-box').innerHTML = `<table class="sh-table">
@@ -105,7 +139,7 @@ export async function renderScanIn(root) {
     });
   };
 
-  // --- Báo cáo nhập ----------------------------------------------------------
+  // --- Tab 3: Lịch sử nhập kho (báo cáo) -------------------------------------
   const qs = () => {
     const params = new URLSearchParams();
     if (scope.date) params.set('date', scope.date);
@@ -127,9 +161,7 @@ export async function renderScanIn(root) {
     const box = root.querySelector('#report-result');
     box.innerHTML = spinner();
     const { rows, summary } = await get(`/inventory/in/report?${qs()}`);
-    const scopeLabel = scope.date
-      ? `Ngày ${fmtDate(scope.date)}`
-      : 'Tất cả các ngày';
+    const scopeLabel = scope.date ? `Ngày ${fmtDate(scope.date)}` : 'Tất cả các ngày';
     const lotLabel = scope.lot_id
       ? ` · Lô ${esc(rows[0]?.lot_number ?? root.querySelector('#rp-lot').selectedOptions[0].text)}`
       : '';
@@ -198,7 +230,7 @@ export async function renderScanIn(root) {
     });
   }
 
-  // --- Lịch sử phiếu in ------------------------------------------------------
+  // --- Tab 4: Lịch sử in phiếu -----------------------------------------------
   const loadPrintHistory = async () => {
     const { data } = await get('/inventory/print-history');
     root.querySelector('#print-history').innerHTML = `<table class="sh-table">
@@ -213,5 +245,6 @@ export async function renderScanIn(root) {
         '<tr><td colspan="6" class="text-muted text-center py-3">Chưa có phiếu in nào</td></tr>'}</tbody></table>`;
   };
 
-  await loadPrintHistory();
+  root.querySelector('#form-in [name=qrcode]').focus();
+  await Promise.all([renderReport(), loadPrintHistory()]);
 }
