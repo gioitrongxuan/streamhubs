@@ -67,6 +67,19 @@ if [ "$HAS_SCHEMA" != "0" ] && [ "$HAS_TRACKING" = "0" ]; then
   $DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/seeds --baseline
 fi
 
+# Seeds là dữ liệu "chạy một lần". Nếu DB đã có dữ liệu gốc (bảng roles có row)
+# nhưng seed chưa được đánh dấu trong schema_migrations, deploy lại sẽ cố INSERT
+# trùng key và fail. Baseline seeds (chỉ đánh dấu, KHÔNG insert lại) để tự lành.
+# DB trống (roles chưa có row) thì bỏ qua → seed chạy bình thường ở bước dưới.
+HAS_DATA=0
+if [ "$HAS_SCHEMA" != "0" ]; then
+  HAS_DATA=$($MYSQL_EXEC "SELECT COUNT(*) FROM roles" 2>/dev/null || echo 0)
+fi
+if [ "$HAS_DATA" != "0" ]; then
+  echo "→ DB đã có dữ liệu gốc — baseline seeds (đánh dấu đã chạy, không seed lại)..."
+  $DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/seeds --baseline
+fi
+
 echo "→ Chạy migration + seed (chỉ áp dụng file mới)..."
 $DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/migrations
 $DOCKER compose -f docker-compose.ec2.yml exec -T app node scripts/run-sql.mjs database/seeds
