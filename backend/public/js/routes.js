@@ -7,7 +7,8 @@ import { renderOrderDetail } from './pages/order-detail.js';
 import { renderStockOrders } from './pages/stock-orders.js';
 import { renderErrors } from './pages/errors.js';
 import { renderInventory } from './pages/inventory.js';
-import { renderScan } from './pages/scan.js';
+import { renderScanIn } from './pages/scan-in.js';
+import { renderScanOut } from './pages/scan-out.js';
 import { renderGenQr } from './pages/gen-qr.js';
 import { renderQc } from './pages/qc.js';
 import { renderScanTrack } from './pages/scan-track.js';
@@ -31,7 +32,9 @@ export const routes = [
   { path: '/stock-orders', render: renderStockOrders },
   { path: '/errors', render: renderErrors },
   { path: '/inventory', render: renderInventory },
-  { path: '/scan', render: renderScan },
+  { path: '/scan-in', render: renderScanIn },
+  { path: '/scan-out', render: renderScanOut },
+  { path: '/scan', render: renderScanIn }, // tương thích link cũ → trang Nhập kho
   { path: '/gen-qrcode', render: renderGenQr },
   { path: '/qc', render: renderQc },
   { path: '/scan-track', render: renderScanTrack },

@@ -30,3 +30,30 @@ export const scanOutSchema = z.object({
   order_item_id: z.number().int().positive().nullable().optional(),
   date: z.string().date().optional(),
 });
+
+// Báo cáo nhập kho theo ngày và/hoặc theo lô nhập.
+export const importReportQuerySchema = z.object({
+  date: z.string().date().optional(),
+  lot_id: z.coerce.number().int().positive().optional(),
+});
+
+// In báo cáo → ghi lịch sử phiếu in. Bắt buộc chọn ngày hoặc lô.
+export const logPrintSchema = z
+  .object({
+    date: z.string().date().optional(),
+    lot_id: z.number().int().positive().optional(),
+  })
+  .refine((v) => Boolean(v.date || v.lot_id), { message: 'Cần chọn ngày hoặc lô để in báo cáo' });
+
+// Đẩy báo cáo nhập kho sang đề nghị thanh toán.
+export const pushPaymentSchema = z
+  .object({
+    date: z.string().date().optional(),
+    lot_id: z.number().int().positive().optional(),
+    approver_ids: z.array(z.number().int().positive()).min(1),
+    supplier_id: z.number().int().positive().nullable().optional(),
+    print_history_id: z.number().int().positive().nullable().optional(),
+  })
+  .refine((v) => Boolean(v.date || v.lot_id), {
+    message: 'Cần chọn ngày hoặc lô để tạo đề nghị thanh toán',
+  });
