@@ -4,7 +4,7 @@
 
 Module tự động sinh và in nhãn vận chuyển (shipping label / tracking label) khi order sẵn sàng xuất kho, kết nối với carrier API.
 
-> **Trạng thái:** Planned feature — chưa có UI mẫu trong `Streamhubs-structure/Auto label/`.
+> **Trạng thái:** Planned feature — chưa có UI mẫu trong `docs/mockups/Auto label/`.
 
 ## Luồng Hoạt động
 
